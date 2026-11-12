@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bola Merah 3D</title>
+<style>
+:root{--ui:rgba(255,255,255,.35);--ui-b:rgba(0,0,0,.55);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ui:rgba(255,255,255,.25);--ui-b:rgba(255,255,255,.75)}}
+:root[data-theme="dark"]{--ui:rgba(255,255,255,.25);--ui-b:rgba(255,255,255,.75)}
+html,body{margin:0;height:100%;overflow:hidden;background:#bfe8ff;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:system-ui,sans-serif}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#hint{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;font-size:13px;font-weight:600;color:#1d2a3a;pointer-events:none}
+#stick{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(26px + env(safe-area-inset-bottom,0px));width:130px;height:130px;border-radius:50%;background:var(--ui);border:3px solid var(--ui-b);touch-action:none}
+#knob{position:absolute;left:39px;top:39px;width:52px;height:52px;border-radius:50%;background:#e53935;border:3px solid #1b1b1b;pointer-events:none}
+#jump{position:fixed;right:calc(26px + env(safe-area-inset-right,0px));bottom:calc(34px + env(safe-area-inset-bottom,0px));width:92px;height:92px;border-radius:50%;background:#ffd23f;border:4px solid #1b1b1b;font-weight:800;font-size:15px;color:#1b1b1b;touch-action:none;box-shadow:0 5px 0 #1b1b1b}
+#call{position:fixed;right:calc(26px + env(safe-area-inset-right,0px));bottom:calc(144px + env(safe-area-inset-bottom,0px));width:92px;height:48px;border-radius:24px;background:#4cc9f0;border:4px solid #1b1b1b;font-weight:800;font-size:14px;color:#1b1b1b;touch-action:none;box-shadow:0 4px 0 #1b1b1b}
+#call.on{background:#7bd88f}
+#hint{display:none!important}
+#cnt{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));z-index:5;display:flex;align-items:center;gap:4px;background:var(--ui);border:3px solid var(--ui-b);border-radius:28px;padding:3px 5px}
+#cnt button{width:38px;height:38px;border-radius:50%;background:#4cc9f0;border:3px solid #1b1b1b;font-weight:800;font-size:22px;line-height:1;color:#1b1b1b;padding:0;touch-action:none}
+#cnt button:active{transform:translateY(2px)}
+#cn{min-width:26px;text-align:center;font-weight:800;font-size:20px;color:#1b1b1b}
+#call:active{transform:translateY(3px);box-shadow:0 1px 0 #1b1b1b}
+#jump:active{transform:translateY(4px);box-shadow:0 1px 0 #1b1b1b}
+#qr{position:fixed;left:12px;right:12px;bottom:calc(206px + env(safe-area-inset-bottom,0px));display:none;flex-wrap:wrap;justify-content:center;gap:6px;z-index:6;pointer-events:none}
+#qr .qh{flex:0 0 100%;display:flex;justify-content:center}
+#qr .qn{font:700 12px system-ui,sans-serif;color:#1b1b1b;background:rgba(255,255,255,.85);border:2.5px solid;border-radius:12px;padding:2px 9px}
+#qr button{pointer-events:auto;font:700 13px system-ui,sans-serif;color:#1b1b1b;background:rgba(255,255,255,.93);border:2.5px solid #1b1b1b;border-radius:16px;padding:6px 11px;touch-action:none;box-shadow:0 2px 0 #1b1b1b}
+#qr button:active{transform:translateY(2px);box-shadow:none}
+#qr.lk button{opacity:.45;pointer-events:none}
+#aib{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:12px;z-index:8;font:800 13px system-ui,sans-serif;border:3px solid #1b1b1b;border-radius:20px;background:#ffd23f;color:#1b1b1b;padding:6px 12px}
+#aim{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:20}
+#aim>div{background:#fff;color:#1b1b1b;border:3px solid #1b1b1b;border-radius:18px;padding:16px;width:min(86vw,360px);font:600 13px/1.4 system-ui,sans-serif}
+#aim input{width:100%;box-sizing:border-box;margin:10px 0;padding:8px 10px;border:2.5px solid #1b1b1b;border-radius:12px;user-select:text;-webkit-user-select:text;touch-action:auto}
+#aim select{width:100%;box-sizing:border-box;margin:10px 0 0;padding:8px 10px;border:2.5px solid #1b1b1b;border-radius:12px;font:600 13px system-ui,sans-serif;background:#fff;color:#1b1b1b;touch-action:auto}
+#aim .off{background:#ff8a8a!important}
+#aim button{font:700 13px system-ui,sans-serif;border:2.5px solid #1b1b1b;border-radius:14px;background:#4cc9f0;color:#1b1b1b;padding:6px 14px}
+#qm{font-size:16px!important}
+#cb{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:104px;z-index:8;font:800 13px system-ui,sans-serif;border:3px solid #1b1b1b;border-radius:20px;background:#fff;color:#1b1b1b;padding:6px 10px}
+#cl{position:fixed;top:calc(104px + env(safe-area-inset-top,0px));left:12px;right:12px;max-height:30vh;overflow-y:auto;display:none;flex-direction:column;gap:5px;z-index:6;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#cl .cm{align-self:flex-start;max-width:82%;font:600 13px/1.35 system-ui,sans-serif;color:#1b1b1b;background:rgba(255,255,255,.93);border:2.5px solid #1b1b1b;border-radius:14px;padding:4px 10px;word-break:break-word}
+#cl .cm b{display:block;font-size:11px;opacity:.65}
+#cl .cm.me{align-self:flex-end;background:rgba(190,236,252,.95)}
+#qt{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));left:12px;right:12px;display:none;gap:6px;z-index:7}
+#qt input{flex:1;min-width:0;font:600 14px system-ui,sans-serif;padding:8px 12px;border:2.5px solid #1b1b1b;border-radius:16px;user-select:text;-webkit-user-select:text;touch-action:auto;background:rgba(255,255,255,.95);color:#1b1b1b}
+#qt button{font:700 13px system-ui,sans-serif;border:2.5px solid #1b1b1b;border-radius:16px;background:#4cc9f0;color:#1b1b1b;padding:6px 12px}
+</style></head><body>
+<div id="hint">Geser layar = putar kamera • Cubit = zoom • Joystick = jalan • Loncat = tombol kuning • Panggil = 5 bola ikut • Colek bola kecil = dia marah & kejar balik! • Bola kecil main kereta, lingkaran, lompat katak, cilukba, numpuk jadi menara, lomba melotot, gepeng, nyembah kamu, berantem & dilerai! Ketuk bola kecil = ngobrol (dia mengetik ... lalu membalas). Jangan tinggalkan dia pas lagi ngobrol, nanti dia marah! Mereka ngobrol lewat ikon ? ! hati, marah & Z yang terbang dari satu bola ke bola lain; kalau berantem ada yang melerai. Diamkan saja: mereka punya kehidupan sendiri.</div>
+<div id="stick"><div id="knob"></div></div>
+<button id="jump">LONCAT</button>
+<button id="call">PANGGIL</button>
+<div id="cnt"><button id="cm">−</button><span id="cn">5</span><button id="cp">+</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const MAP=165,R=0.6,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfe8ff);scene.fog=new THREE.Fog(0xbfe8ff,30,90);
+const cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,800);
+scene.add(new THREE.HemisphereLight(0xffffff,0x88aa66,.9));
+const sun=new THREE.DirectionalLight(0xffffff,.8);sun.position.set(5,10,4);scene.add(sun);
+
+const gm=new THREE.DataTexture(new Uint8Array([110,190,255]),3,1,THREE.LuminanceFormat);
+gm.minFilter=gm.magFilter=THREE.NearestFilter;gm.needsUpdate=true;
+const toon=(c,map)=>new THREE.MeshToonMaterial({color:c,map:map||null,gradientMap:gm});
+const outMat=new THREE.MeshBasicMaterial({color:0x1b1b1b,side:THREE.BackSide});
+function outline(m,s){const o=new THREE.Mesh(m.geometry,outMat);o.scale.setScalar(s||1.06);m.add(o)}
+
+function ballTex(){
+  const c=document.createElement('canvas');c.width=1024;c.height=512;const g=c.getContext('2d');
+  g.fillStyle='#e53935';g.fillRect(0,0,1024,512);
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  g.lineCap='round';g.strokeStyle='rgba(60,0,0,.75)';
+  for(let k=0;k<3;k++){g.lineWidth=3+k;g.beginPath();const y=150+k*105;
+    for(let x=0;x<=1024;x+=16){const yy=y+Math.sin(x*.02+k)*8+(rnd()-.5)*5;x?g.lineTo(x,yy):g.moveTo(x,yy)}g.stroke()}
+  g.lineWidth=2;
+  for(let p=0;p<9;p++){const px=rnd()*1000,py=110+rnd()*280;
+    for(let i=0;i<9;i++){g.beginPath();const ox=px+i*7;g.moveTo(ox+(rnd()-.5)*3,py);g.lineTo(ox-18+(rnd()-.5)*4,py+34+rnd()*6);g.stroke()}}
+  g.lineWidth=2.5;
+  for(let i=0;i<16;i++){const x=rnd()*1024,y=60+rnd()*400,r=18+rnd()*38,a=rnd()*6;g.beginPath();g.arc(x,y,r,a,a+2+rnd()*2);g.stroke()}
+  g.strokeStyle='rgba(255,205,205,.85)';g.lineWidth=8;
+  for(let i=0;i<4;i++){const x=110+i*256,y=190;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+25,y-35,x+62,y-24);g.stroke()}
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+
+function dirtTex(col){
+  const c=document.createElement('canvas');c.width=1024;c.height=512;const g=c.getContext('2d');
+  g.fillStyle=col||'#e53935';g.fillRect(0,0,1024,512);
+  let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<4;i++){const x=rnd()*1024,y=150+rnd()*212,r=4+rnd()*4;
+    g.fillStyle='rgba(70,25,15,'+(.4+rnd()*.25)+')';g.beginPath();g.ellipse(x,y,r*1.3,r*.8,rnd()*3,0,6.283);g.fill()}
+  for(let i=0;i<3;i++){const x=rnd()*1024,y=130+rnd()*252;
+    g.fillStyle='rgba(120,60,40,.5)';g.beginPath();g.arc(x,y,2+rnd()*2,0,6.283);g.fill()}
+  g.lineCap='round';g.strokeStyle='rgba(80,15,15,.55)';g.lineWidth=3;
+  for(let k=0;k<2;k++){g.beginPath();const y=190+k*130;
+    for(let x=0;x<=1024;x+=16){const yy=y+Math.sin(x*.02+k*2)*8;x?g.lineTo(x,yy):g.moveTo(x,yy)}g.stroke()}
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+const ball=new THREE.Group();scene.add(ball);
+const mesh=new THREE.Mesh(new THREE.SphereGeometry(R,40,28),toon(0xffffff,dirtTex()));
+outline(mesh,1.07);ball.add(mesh);
+const eyes=new THREE.Group();ball.add(eyes);const eyeM=[];
+[-1,1].forEach(s=>{const x=s*.2,y=.12,z=Math.sqrt(R*R-x*x-y*y);
+  const e=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),new THREE.MeshBasicMaterial({color:0x111111}));
+  const n=new THREE.Vector3(x,y,z).normalize();
+  e.position.copy(n).multiplyScalar(R+.03);e.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+  e.scale.set(1,1.5,.5);eyes.add(e);eyeM.push(e)});
+let heading=Math.PI,blinkT=2,blinkP=0,idleT=0,lookOff=0;
+const LK=[[0,0],[.35,-.6],[1.1,-.6],[1.5,.5],[2.3,.5],[2.8,0]];
+function lookAt(u){for(let i=1;i<LK.length;i++){if(u<=LK[i][0]){const a=LK[i-1],b=LK[i];let f=(u-a[0])/(b[0]-a[0]);f=f*f*(3-2*f);return a[1]+(b[1]-a[1])*f}}return 0}
+const sh=new THREE.Mesh(new THREE.CircleGeometry(R*1.1,24),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
+sh.rotation.x=-Math.PI/2;scene.add(sh);
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(MAP*2+300,MAP*2+300),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}));
+ground.rotation.x=-Math.PI/2;scene.add(ground);
+
+const obs=[];let s2=3;const r2=()=>(s2=(s2*16807)%2147483647)/2147483647;
+for(let i=0;i<0;i++){
+  const a=r2()*6.283,d=7+r2()*45,x=Math.cos(a)*d,z=Math.sin(a)*d,t=r2();let o,r,y0=0;
+  if(t<.5){o=new THREE.Group();
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(.25,.32,1.4,8),toon(0x8d5a3b));tr.position.y=.7;outline(tr,1.12);
+    const cr=new THREE.Mesh(new THREE.SphereGeometry(1.3,12,10),toon(0x3fae4f));cr.position.y=2.4;outline(cr,1.06);
+    o.add(tr,cr);r=.55}
+  else if(t<.8){const sz=.8+r2()*.6;o=new THREE.Mesh(new THREE.DodecahedronGeometry(sz),toon(0xb0b4bd));outline(o,1.07);y0=sz*.7;r=sz*.9}
+  else{const sz=1.2+r2()*.8;o=new THREE.Mesh(new THREE.BoxGeometry(sz,sz,sz),toon([0xffb703,0x4cc9f0,0xf72585][i%3]));outline(o,1.06);y0=sz/2;r=sz*.75;o.rotation.y=r2()*3}
+  o.position.set(x,y0,z);scene.add(o);obs.push({x,z,r});
+}
+
+const mkD=(B,hl)=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
+  x.lineJoin='round';x.strokeStyle='#2a2438';x.lineWidth=16;
+  B.forEach(([cx,cy,r])=>{x.beginPath();x.arc(cx,cy,r,0,6.283);x.stroke()});
+  x.save();x.beginPath();B.forEach(([cx,cy,r])=>{x.moveTo(cx+r,cy);x.arc(cx,cy,r,0,6.283)});x.clip();   // isi gabungan lingkaran: gradasi putih-krem-biru lembut
+  const g=x.createLinearGradient(0,60,0,204);g.addColorStop(0,'#ffffff');g.addColorStop(.6,'#ffffff');g.addColorStop(1,'#dde5fb');x.fillStyle=g;x.fillRect(0,0,256,256);
+  x.strokeStyle='rgba(150,160,205,.32)';x.lineWidth=5;x.lineCap='round';B.slice(0,3).map(([cx,cy,r],i)=>[cx,cy,r*.72,.5+i*.1,2.5]).forEach(([cx,cy,r,a0,a1])=>{x.beginPath();x.arc(cx,cy,r,a0,a1);x.stroke()});
+  x.fillStyle='rgba(255,255,255,.95)';x.beginPath();x.ellipse(hl[0],hl[1],20,10,-.5,0,6.283);x.fill();x.beginPath();x.ellipse(hl[0]+36,hl[1]+14,7,4,-.5,0,6.283);x.fill();x.restore();   // kilau
+  return new THREE.CanvasTexture(c)};
+const DT=[mkD([[128,138,58],[72,160,38],[184,160,40],[100,100,40],[156,102,38],[128,96,34],[44,172,22],[212,172,22]],[100,84]),mkD([[116,142,54],[62,166,32],[170,146,48],[204,172,30],[88,98,40],[146,94,36],[34,178,18],[120,176,30]],[90,86]),mkD([[132,140,56],[82,156,44],[188,164,38],[110,98,38],[160,96,40],[136,170,34],[52,172,24],[214,150,22]],[108,84])],dtex=DT[0];   // 3 bentuk awan agar tidak monoton
+const DUST_MAX=420,dust=[];
+for(let i=0;i<DUST_MAX;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:dtex,transparent:true,opacity:0,depthWrite:false,fog:false}));
+  s.visible=false;scene.add(s);dust.push({s,life:0,max:1,vx:0,vy:0,vz:0,size:.3,grow:2,spin:0})}
+let dustIdx=0,dustAcc=0,footSide=1;const rr=(a,b)=>a+Math.random()*(b-a);
+function puff(x,z,vx,vy,vz,size,grow,life){const p=dust[dustIdx];dustIdx=(dustIdx+1)%DUST_MAX;
+  p.s.position.set(x,rr(.05,.18),z);p.vx=vx;p.vy=vy;p.vz=vz;p.size=size;p.grow=grow;p.max=p.life=life;p.spin=rr(-.4,.4);
+  p.s.material.rotation=rr(-.5,.5);p.s.material.map=DT[Math.floor(Math.random()*3)];p.ax=rr(.92,1.14);p.ay=rr(.88,1.04);p.s.material.color.setHSL(.6,rr(0,.06),rr(.97,1));p.s.scale.setScalar(size);p.s.visible=true}
+function updateDust(dt,sp,acc){
+  if(grounded&&sp>1.5){dustAcc+=dt*(4+sp*1.6);
+    while(dustAcc>=1){dustAcc-=1;footSide=-footSide;const nx=vel.x/sp,nz=vel.z/sp,sx=-nz*footSide,sz2=nx*footSide,k=Math.min(1,sp/7);
+      puff(pos.x-nx*R*.8+sx*R*.5,pos.z-nz*R*.8+sz2*R*.5,-nx*sp*.1+sx*rr(.2,.9)+rr(-.3,.3),rr(.5,1.1),-nz*sp*.1+sz2*rr(.2,.9)+rr(-.3,.3),rr(.22,.38)*(.7+k*.5),rr(2.2,3.4),rr(.7,1.2))}
+    if(acc>28&&sp>3)for(let i=0;i<2;i++)puff(pos.x+rr(-.3,.3),pos.z+rr(-.3,.3),rr(-1.5,1.5),rr(.6,1.2),rr(-1.5,1.5),rr(.35,.55),rr(2.5,3.5),rr(.8,1.2))}
+  for(const p of dust){if(p.life<=0)continue;p.life-=dt;
+    if(p.life<=0){p.s.visible=false;continue}
+    const t=1-p.life/p.max,drag=Math.max(0,1-3*dt);
+    p.vx=p.vx*drag+.25*dt;p.vz=p.vz*drag+.1*dt;p.vy=p.vy*Math.max(0,1-2.5*dt)+.15*dt;
+    p.s.position.x+=p.vx*dt;p.s.position.y+=p.vy*dt;p.s.position.z+=p.vz*dt;p.s.material.rotation+=p.spin*dt;
+    const e=t<.3?1-Math.pow(1-t/.3,3):1-Math.pow((t-.3)/.7,2);
+    const sc=Math.max(.001,p.size*1.4*(.5+p.grow*.22)*e);p.s.scale.set(sc*p.ax,sc*p.ay,1);
+    {const q=Math.max(0,(t-.55)/.45);p.s.material.opacity=1-q*q*(3-2*q)}
+    for(const b of blk){const cx=b.position.x,cy=b.position.y,cz=b.position.z,
+      dx=p.s.position.x-cx,dy=p.s.position.y-cy,dz=p.s.position.z-cz,dd=Math.hypot(dx,dy,dz),
+      rad=R*1.15*Math.max(b.scale.x,b.scale.y)+sc*.28;
+    if(dd<rad){
+      const nx=dd>.0001?dx/dd:0,ny=dd>.0001?dy/dd:0,nz=dd>.0001?dz/dd:1;
+      p.s.position.set(cx+nx*rad,Math.max(.05,cy+ny*rad),cz+nz*rad);
+      const vn=p.vx*nx+p.vy*ny+p.vz*nz;
+      if(vn<0){p.vx-=vn*nx*1.6;p.vy-=vn*ny*1.6;p.vz-=vn*nz*1.6}
+      p.vx+=nx*1.2;p.vz+=nz*1.2;
+    }}}}
+function landDust(imp){const n=imp>6?22:10;if(imp>6)for(let i=0;i<10;i++){const an=i/10*6.283+rr(-.2,.2),s=rr(4.5,6);puff(pos.x+Math.cos(an)*R*.7,pos.z+Math.sin(an)*R*.7,Math.cos(an)*s,rr(.1,.3),Math.sin(an)*s,rr(.16,.26),rr(1.5,2.2),rr(.4,.6))}for(let i=0;i<n;i++){const an=i/n*6.283+rr(-.2,.2),s=rr(2,3.6);
+  puff(pos.x+Math.cos(an)*R*.8,pos.z+Math.sin(an)*R*.8,Math.cos(an)*s,rr(.4,.9),Math.sin(an)*s,rr(.35,.55),rr(2.5,3.8),rr(.8,1.3))}}
+function takeoffDust(){for(let i=0;i<6;i++){const an=rr(0,6.283),s=rr(1,2);
+  puff(pos.x+Math.cos(an)*R*.6,pos.z+Math.sin(an)*R*.6,Math.cos(an)*s,rr(.3,.7),Math.sin(an)*s,rr(.25,.4),rr(2,3),rr(.6,1))}}
+
+let jx=0,jy=0,jumpReq=false,yaw=0,pitch=.5;let dist=13;const keys={};
+addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='Space'){jumpReq=true;e.preventDefault()}});
+addEventListener('keyup',e=>keys[e.code]=0);
+const stick=$('stick'),knob=$('knob');let sp=null;
+function stickMove(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+  const max=r.width/2-8,l=Math.hypot(dx,dy);if(l>max){dx*=max/l;dy*=max/l}
+  knob.style.transform='translate('+dx+'px,'+dy+'px)';jx=dx/max;jy=-dy/max}
+stick.addEventListener('pointerdown',e=>{if(sp!==null)return;sp=e.pointerId;stick.setPointerCapture(sp);stickMove(e)});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===sp)stickMove(e)});
+const stickEnd=e=>{if(e.pointerId===sp){sp=null;jx=jy=0;knob.style.transform=''}};
+stick.addEventListener('pointerup',stickEnd);stick.addEventListener('pointercancel',stickEnd);
+$('jump').addEventListener('pointerdown',e=>{e.preventDefault();jumpReq=true});
+const cv=renderer.domElement;let cp=null,lx=0,ly=0,pd=0;const pts=new Map();
+const pinchD=()=>{const a=[...pts.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
+cv.addEventListener('pointerdown',e=>{if(e.isPrimary){pts.clear();cp=null;pd=0}try{cv.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===2)pd=pinchD();
+  if(cp===null){cp=e.pointerId;lx=e.clientX;ly=e.clientY}});
+cv.addEventListener('pointermove',e=>{if(pts.has(e.pointerId))pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size>=2){const d=pinchD();if(pd>0&&d>0)dist=clamp(dist*pd/d,4,35);pd=d;return}
+  if(e.pointerId!==cp)return;yaw-=(e.clientX-lx)*.006;pitch=clamp(pitch+(e.clientY-ly)*.005,.12,1.25);lx=e.clientX;ly=e.clientY});
+const camEnd=e=>{pts.delete(e.pointerId);if(pts.size<2)pd=0;if(e.pointerId===cp){cp=null;const r=[...pts.keys()][0];if(r!==undefined){cp=r;lx=pts.get(r).x;ly=pts.get(r).y}}};
+cv.addEventListener('pointerup',camEnd);cv.addEventListener('pointercancel',camEnd);cv.addEventListener('lostpointercapture',camEnd);
+window.addEventListener('blur',()=>{pts.clear();cp=null;pd=0});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=clamp(dist*Math.exp(e.deltaY*.001),4,35)},{passive:false});
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
+
+const pos=new THREE.Vector3(),vel=new THREE.Vector3(),camT=new THREE.Vector3(0,1,0),axis=new THREE.Vector3(),q=new THREE.Quaternion();
+let h=0,vy=0,grounded=true,phase=0,lastHalf=0,sq=0,sqv=0;
+const clock=new THREE.Clock();
+// ===== 5 BOLA TEMAN =====
+const BODY=['#ffd23f','#6c8cff','#ff5a4f','#ff6fb5','#4cc96a'],FN=5,FS=.55,RF=R*FS;let called=false;const fol=[];
+const fGeo=mesh.geometry,fMat=mesh.material,eGeo=new THREE.SphereGeometry(.075,12,10),eMat=new THREE.MeshBasicMaterial({color:0x111111});
+for(let i=0;i<FN+1;i++){
+  const g=new THREE.Group();scene.add(g);
+  const m=new THREE.Mesh(fGeo,toon(0xffffff,dirtTex(BODY[i%5])));outline(m,1.07);g.add(m);
+  const ey=new THREE.Group();g.add(ey);const em=[],chs=[];
+  [-1,1].forEach(sd=>{const x=sd*.2,y=.12,z=Math.sqrt(R*R-x*x-y*y),n=new THREE.Vector3(x,y,z).normalize();
+    const e=new THREE.Mesh(eGeo,eMat);e.position.copy(n).multiplyScalar(R+.03);
+    e.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);e.scale.set(1,1.5,.5);ey.add(e);em.push(e);
+    const c=mkChev(sd,n);ey.add(c);chs.push(c)});
+  const shd=new THREE.Mesh(new THREE.CircleGeometry(R*1.1,24),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));
+  shd.rotation.x=-Math.PI/2;scene.add(shd);
+  const an=(i/FN)*6.283+.6,rd=4.5+(i%2)*1.5;
+  fol.push({g,m,ey,em,ch:chs,shd,x:Math.sin(an)*rd,z:Math.cos(an)*rd-2,vx:0,vz:0,h:0,vy:0,gr:true,hd:Math.random()*6.283,bt:1+Math.random()*3,bp:0,sq:0,sqv:0,jd:0,da:0,fs:1,wa:rr(0,6.283),wr:rr(2,6),wt:rr(.3,2),ps:0,ms:rr(5.5,9.5),lag:rr(.15,1.2),orb:Math.random()<.4?rr(-.5,.5):0,ax:0,az:0,t:[0,0],ai:i===FN});
+}
+const blk=[ball,...fol.map(f=>f.g)];
+const callBtn=$('call');
+function setCall(v){called=v;callBtn.textContent=v?'LEPAS':'PANGGIL';callBtn.classList.toggle('on',v);
+  if(v)fol.forEach(f=>{f.mode=null;f.mo=null;f.idl=rr(4,9);f.jd=rr(.05,.6);f.ax=pos.x;f.az=pos.z;f.wt=rr(.3,1.5)})}
+callBtn.addEventListener('pointerdown',e=>{e.preventDefault();setCall(!called)});
+addEventListener('keydown',e=>{if(e.code==='KeyE'||e.code==='KeyC')setCall(!called)});
+// ===== JUMLAH BOLA KECIL (0-5): tombol − dan + di kanan atas =====
+const ALL=fol.slice();let NB=FN;
+function setNB(n){n=clamp(n,0,FN);if(n===NB)return;NB=n;
+  ALL.forEach((f,i)=>{if(f.ai)return;const on=i<n,was=fol.includes(f);
+    if(on&&!was){const a=rr(0,6.283),r=rr(3.5,5.5);fol.push(f);
+      Object.assign(f,{x:pos.x+Math.sin(a)*r,z:pos.z+Math.cos(a)*r,vx:0,vz:0,h:0,vy:0,gr:true,mode:null,mo:null,bf:null,rv:null,idl:rr(.8,2.5),hu:0,cr:0,jd:0,exT:0,ax:pos.x,az:pos.z});
+      f.g.visible=true;f.shd.visible=true;ping(f)}
+    else if(!on&&was){fol.splice(fol.indexOf(f),1);
+      fol.forEach(o=>{if(o.mo===f||(o.bf&&(o.bf.a===f||o.bf.b===f))){o.mode=null;o.mo=null;o.bf=null;o.idl=1}if(o.rv===f)o.rv=null});
+      f.mode=null;f.mo=null;f.bf=null;f.rv=null;f.g.visible=false;f.shd.visible=false;f.emo.visible=false;if(f.L&&f.L.sy)f.L.sy.visible=false;f.g.position.set(0,-999,0)}});
+  $('cn').textContent=n}
+$('cm').addEventListener('pointerdown',e=>{e.preventDefault();setNB(NB-1)});
+$('cp').addEventListener('pointerdown',e=>{e.preventDefault();setNB(NB+1)});
+function fJump(){if(called)fol.forEach(f=>{if(Math.random()<.7)f.jd=rr(.05,.6)})}
+function mkChev(sd,n,rot){
+  if(!mkChev.g)mkChev.g=new THREE.BoxGeometry(.094,.03,.03);
+  const grp=new THREE.Group();
+  grp.position.copy(n).multiplyScalar(R+.035);grp.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+  const sg=sd<0?1:-1;
+  [[.025,-32],[-.025,32]].forEach(([y,a])=>{const b=new THREE.Mesh(mkChev.g,eMat);b.position.set(0,y,0);b.rotation.z=sg*a*Math.PI/180;grp.add(b)});
+  if(rot)grp.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),rot));grp.scale.setScalar(1.15);grp.visible=false;return grp}
+function fBump(f,nx,nz,sp,c,rv){if(f.bk>0||f.mode==='brawl')return;f.bk=.3;f.hu=.9;LCA.bump(f,c,sp);const kk=clamp(sp*.5,2,4.5);f.vx+=nx*kk;f.vz+=nz*kk;f.sqv=-2.5;if(f.gr){f.vy=3.5;f.gr=false}
+  if(c&&c!==f&&Math.random()<(rv?.3:c.pl?(called?.4:.75):.7))f.rv=c;
+  if(!f.rv&&Math.random()<(f.pi===1?.6:.25))f.cr=1}
+function fFar(f,dt,dpl){
+  if(!f.far&&dpl>10){f.far=true;f.cm=Math.floor(Math.random()*4);f.hc=Math.floor(rr(2,6));f.fhp=rr(0,.3);f.ps=0}
+  else if(f.far&&dpl<6)f.far=false;
+  if(!f.far)return 1;
+  if(dpl>16&&f.cm===0)f.cm=1;
+  f.fhp-=dt;
+  if(f.cm===2){if(f.fhp<=0&&f.gr){f.jd=.01;f.fhp=rr(.3,.6)}return 1.4}
+  if(f.cm===3){if(f.hc>0){if(f.fhp<=0&&f.gr){f.jd=.01;f.hc--;f.fhp=rr(.3,.5)}return 1.2}return 1.6}
+  return f.cm===1?1.8:1}
+function fTarget(f,dt,dpl){
+  const kk=1-Math.exp(-dt/f.lag);f.ax+=(pos.x-f.ax)*kk;f.az+=(pos.z-f.az)*kk;
+  f.wt-=dt;f.wa+=f.orb*dt;if(f.ps>0)f.ps-=dt;
+  if(f.wt<=0){f.wt=rr(1.5,4.5);f.wr=rr(1.8,7);if(Math.random()<.4)f.wa=rr(0,6.283);
+    if(Math.random()<.25)f.ps=rr(.8,2.4);if(Math.random()<.15&&f.gr)f.jd=.01}
+  const wob=Math.sin(performance.now()*.001*f.lag*3+f.ms)*.7;
+  f.t[0]=f.ax+Math.sin(f.wa)*(f.wr+wob);f.t[1]=f.az+Math.cos(f.wa)*(f.wr+wob);return f.t}
+function fDust(f,dt,sp,acc){
+  if(f.bk>0)f.bk-=dt;
+  if(f.gr&&sp>1.5){f.da+=dt*(4+sp*1.6);
+    while(f.da>=1){f.da-=1;f.fs=-f.fs;const nx=f.vx/sp,nz=f.vz/sp,sx=-nz*f.fs,sz2=nx*f.fs,k=Math.min(1,sp/7);
+      puff(f.x-nx*RF*.8+sx*RF*.5,f.z-nz*RF*.8+sz2*RF*.5,-nx*sp*.1+sx*rr(.2,.9)+rr(-.3,.3),rr(.5,1.1),-nz*sp*.1+sz2*rr(.2,.9)+rr(-.3,.3),rr(.22,.38)*(.7+k*.5)*FS,rr(2.2,3.4),rr(.7,1.2))}
+    if(acc>28&&sp>3)for(let i=0;i<2;i++)puff(f.x+rr(-.3,.3)*FS,f.z+rr(-.3,.3)*FS,rr(-1.5,1.5),rr(.6,1.2),rr(-1.5,1.5),rr(.35,.55)*FS,rr(2.5,3.5),rr(.8,1.2))}}
+function fLand(f,imp){const n=imp>6?10:5;for(let i=0;i<n;i++){const an=i/n*6.283+rr(-.2,.2),s=rr(2,3.6);
+  puff(f.x+Math.cos(an)*RF*.8,f.z+Math.sin(an)*RF*.8,Math.cos(an)*s,rr(.4,.9),Math.sin(an)*s,rr(.35,.55)*FS,rr(2.5,3.8),rr(.8,1.3))}}
+function fTakeoff(f){for(let i=0;i<4;i++){const an=rr(0,6.283),s=rr(1,2);
+  puff(f.x+Math.cos(an)*RF*.6,f.z+Math.sin(an)*RF*.6,Math.cos(an)*s,rr(.3,.7),Math.sin(an)*s,rr(.25,.4)*FS,rr(2,3),rr(.6,1))}}
+const PERS=[{brawl:1,zoom:2,spin:2,hops:1,chase:2,train:2,ring:2,leap:2,showoff:2,peek:1,hug:1,stack:3,flat:1,bow:1},{sleep:3,brawl:1,stroll:1,hug:2,peek:1,flat:3,bow:2,stare:1},{ram:3,brawl:2,tantrum:2,sneak:3,showoff:2,leap:1,stare:3,stack:1},{dance:3,brawl:1,tail:1,curious:1,ring:3,train:2,showoff:1,bow:2,flat:2,},{curious:2,brawl:1,stroll:1,spin:1,peek:3,sneak:1,train:1,leap:1,stare:2,stack:2,}];
+// ===== SIFAT TIAP BOLA =====
+const PT=[
+{n:'Ceria',ms:9.8,soc:.85,jv:1.1,idm:.7,rx:{spin:'join',zoom:'join',tantrum:'laugh',dance:'join',ram:'watch',chase:'join',run:'join',tail:'laugh',sleep:'inspect',revenge:'watch',dizzy:'laugh'}},
+{n:'Pemalas Penakut',ms:7,soc:.9,jv:.85,idm:1.5,rx:{spin:'watch',zoom:'flee',tantrum:'flee',dance:'watch',ram:'flee',chase:'flee',run:'flee',tail:'flee',sleep:'join',revenge:'flee',dizzy:'watch'}},
+{n:'Pemarah',ms:8.5,soc:.7,jv:1,idm:1,rx:{spin:'scold',zoom:'scold',tantrum:'scold',dance:'scold',ram:'watch',chase:'scold',run:'watch',tail:'scold',sleep:'scold',revenge:'watch',dizzy:'laugh'}},
+{n:'Penari',ms:8,soc:.85,jv:1.05,idm:.9,rx:{spin:'laugh',zoom:'laugh',tantrum:'laugh',dance:'laugh',ram:'watch',chase:'laugh',run:'laugh',tail:'laugh',sleep:'inspect',revenge:'flee',dizzy:'laugh'}},
+{n:'Penasaran',ms:7.5,soc:.95,jv:1,idm:1,rx:{spin:'inspect',zoom:'inspect',tantrum:'inspect',dance:'inspect',ram:'watch',chase:'inspect',run:'inspect',tail:'inspect',sleep:'inspect',revenge:'flee',dizzy:'inspect'}}];
+const RX2=[{train:'play',lead:'play',ring:'play',cry:'comfort',showoff:'laugh',leap:'laugh',crouch:'laugh',peek:'laugh'},
+{train:'play',lead:'play',ring:'watch',cry:'comfort',showoff:'watch',leap:'watch',crouch:'watch',peek:'flee'},
+{train:'scold',lead:'scold',ring:'scold',cry:'laugh',showoff:'scold',leap:'scold',crouch:'laugh',peek:'watch'},
+{train:'play',lead:'play',ring:'play',cry:'comfort',showoff:'laugh',leap:'laugh',crouch:'laugh',peek:'laugh'},
+{train:'play',lead:'play',ring:'play',cry:'comfort',showoff:'inspect',leap:'inspect',crouch:'inspect',peek:'inspect'}];
+PT.forEach((p,i)=>Object.assign(p.rx,RX2[i]));
+const RX3=[{stack:'play',carry:'play',balloon:'join',stare:'watch',flat:'join',bow:'join'},{stack:'watch',carry:'watch',balloon:'flee',stare:'watch',flat:'join',bow:'join'},
+{stack:'scold',carry:'scold',balloon:'scold',stare:'watch',flat:'laugh',bow:'scold'},{stack:'play',carry:'play',balloon:'laugh',stare:'laugh',flat:'join',bow:'join'},
+{stack:'inspect',carry:'inspect',balloon:'inspect',stare:'inspect',flat:'inspect',bow:'join'}];
+PT.forEach((p,i)=>Object.assign(p.rx,RX3[i]));
+const RX4=[{brawl:'cheer'},{brawl:'flee'},{brawl:'cheer'},{brawl:'part'},{brawl:'watch'}];
+PT.forEach((p,i)=>Object.assign(p.rx,RX4[i]));
+function emoTex(fn){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.lineJoin='round';fn(g);return new THREE.CanvasTexture(c)}
+const txt=(s,col,sz)=>g=>{g.font='900 '+(sz||44)+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=7;g.strokeStyle='#1b1b1b';g.strokeText(s,32,34);g.fillStyle=col;g.fillText(s,32,34)};
+const EMO={Z:emoTex(txt('Z','#fff')),'!':emoTex(txt('!','#ffd23f',50)),'?':emoTex(txt('?','#4cc9f0',48)),ha:emoTex(txt('HA','#ffd23f',30)),nt:emoTex(txt('\u266A','#f72585',46)),
+ hrt:emoTex(g=>{g.beginPath();g.moveTo(32,54);g.bezierCurveTo(4,34,10,8,32,22);g.bezierCurveTo(54,8,60,34,32,54);g.closePath();g.lineWidth=6;g.strokeStyle='#1b1b1b';g.stroke();g.fillStyle='#ff4d8d';g.fill()}),
+ ang:emoTex(g=>{g.strokeStyle='#e53935';g.lineWidth=7;g.lineCap='round';for(let k=0;k<4;k++){g.save();g.translate(32,32);g.rotate(k*Math.PI/2);g.beginPath();g.moveTo(6,-20);g.quadraticCurveTo(6,-6,20,-6);g.stroke();g.restore()}})};
+const tearMat=new THREE.MeshBasicMaterial({color:0x5ec8ff});
+(function(){
+ const mk=fn=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.lineJoin='round';g.lineCap='round';fn(g);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t};
+ const glyph=(ch,c1,c2,sz,it)=>g=>{g.font=(it?'italic ':'')+'900 '+sz+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+  g.lineWidth=16;g.strokeStyle='#1b1b1b';g.strokeText(ch,64,70);const gr=g.createLinearGradient(0,20,0,116);gr.addColorStop(0,c1);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillText(ch,64,70)};
+ EMO['?']=mk(glyph('?','#a8ecff','#2f9bff',104));EMO['!']=mk(glyph('!','#fff29a','#ffa51f',104));EMO.Z=mk(glyph('Z','#ffffff','#b9b4ff',96,true));
+ EMO.hrt=mk(g=>{g.beginPath();g.moveTo(64,114);g.bezierCurveTo(4,72,14,12,64,44);g.bezierCurveTo(114,12,124,72,64,114);g.closePath();
+  g.lineWidth=12;g.strokeStyle='#1b1b1b';g.stroke();const gr=g.createLinearGradient(0,20,0,114);gr.addColorStop(0,'#ff9cc2');gr.addColorStop(1,'#ec3b78');g.fillStyle=gr;g.fill();
+  g.fillStyle='rgba(255,255,255,.8)';g.beginPath();g.ellipse(38,50,9,15,-.7,0,6.283);g.fill()});
+ EMO.ang=mk(g=>{g.translate(64,64);for(let k=0;k<4;k++){g.save();g.rotate(k*Math.PI/2);g.beginPath();g.moveTo(12,-44);g.quadraticCurveTo(12,-12,44,-12);
+  g.strokeStyle='#1b1b1b';g.lineWidth=22;g.stroke();g.strokeStyle='#ff3b30';g.lineWidth=11;g.stroke();g.restore()}});
+ EMO.ring=mk(g=>{g.beginPath();g.arc(64,64,48,0,6.283);g.lineWidth=10;g.strokeStyle='#fff';g.stroke()});
+ EMO.spark=mk(g=>{g.translate(64,64);g.beginPath();for(let i=0;i<8;i++){const r=i%2?16:52,a=i*Math.PI/4;g.lineTo(Math.cos(a)*r,Math.sin(a)*r)}g.closePath();
+  g.lineWidth=10;g.strokeStyle='#1b1b1b';g.stroke();g.fillStyle='#ffe066';g.fill()});
+})();
+// ===== TINGKAH LUCU BOLA KECIL (ekspresi lewat mata, alis, mulut & gerak badan) =====
+const ZV=new THREE.Vector3(0,0,1);
+const PL={pl:1,get x(){return pos.x},get z(){return pos.z},get vx(){return vel.x},get vz(){return vel.z}};
+function mkBrow(n){const g=new THREE.Group();g.position.copy(n).multiplyScalar(R+.035);g.quaternion.setFromUnitVectors(ZV,n);
+  const b=new THREE.Mesh(new THREE.BoxGeometry(.13,.03,.03),eMat);b.position.y=.12;g.add(b);g.visible=false;return g}
+fol.forEach((f,i)=>{
+  f.hp=[];f.br=[];
+  [-1,1].forEach(sd=>{const x=sd*.2,y=.12,z=Math.sqrt(R*R-x*x-y*y),n=new THREE.Vector3(x,y,z).normalize();
+    const h=mkChev(sd,n,-sd*Math.PI/2);f.ey.add(h);f.hp.push(h);const b=mkBrow(n);f.ey.add(b);f.br.push(b)});
+  const mn=new THREE.Vector3(0,-.11,Math.sqrt(R*R-.0121)).normalize(),mg=new THREE.Group();
+  mg.position.copy(mn).multiplyScalar(R+.03);mg.quaternion.setFromUnitVectors(ZV,mn);
+  f.smile=new THREE.Mesh(new THREE.TorusGeometry(.065,.014,6,16,Math.PI),eMat);f.smile.rotation.z=Math.PI;f.smile.position.y=.035;
+  f.open=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),eMat);f.open.scale.set(1,1,.5);
+  mg.add(f.smile,f.open);mg.visible=false;f.ey.add(mg);f.mouth=mg;
+  Object.assign(f,{ex:null,exT:0,mode:null,mt:0,mo:null,idl:rr(1,4),k:0,cx:0,cz:0,ang:0,hs:0,ds:0,dx:0,dz:0,dr:1,lk:0,lkT:rr(1,3),w:PERS[i%PERS.length],pi:i%PT.length,gz:null,gzT:0,rc:rr(1,3),cd:0,hrt:0,cr:0,sj:0});f.ms=PT[f.pi].ms*rr(.95,1.05);
+  f.tears=[-1,1].map(sd=>{const t=new THREE.Mesh(eGeo,tearMat);t.scale.set(.6,.9,.6);t.visible=false;t.userData.x=sd*.21;f.ey.add(t);return t});
+  f.emo=new THREE.Sprite(new THREE.SpriteMaterial({map:EMO.Z,transparent:true,depthWrite:false,fog:false}));f.emo.visible=false;f.emo.scale.setScalar(.5);scene.add(f.emo)});
+const ex=(f,x,t)=>{f.ex=x;f.exT=t},fhop=f=>{if(f.gr)f.jd=.01},
+  buddy=f=>{if(fol.length<2)return f;let o;do{o=fol[Math.floor(Math.random()*fol.length)]}while(o===f);return o},
+  setM=(f,m,t,o)=>{f.mode=m;f.mt=t;f.mo=o||null;f.k=0;f.hs=0;f.ds=0;f.lk=0;f.fk=0;f.nz=0},
+  goTo=(f,x,z,sp)=>{const dx=x-f.x,dz=z-f.z,d=Math.hypot(dx,dz);if(d<.15)return[0,0];const s=Math.min(d*3,sp);return[dx/d*s,dz/d*s]};
+function pick(w){let t=0;for(const k in w)t+=w[k];let r=Math.random()*t;for(const k in w){r-=w[k];if(r<=0)return k}return'hops'}
+function fFace(f,by,hurt,dt){
+  if(f.exT>0)f.exT-=dt;let x=f.exT>0?f.ex:null;if(f.mode==='sleep')x='sleep';
+  const T=performance.now()*.001;let eyes=true,car=false,sm=false,op=false,br=0,sx=1,sy=1.5*by;
+  if(x==='sleep')sy=.12;
+  else if(x==='happy'){eyes=false;car=true;sm=true}
+  else if(x==='yell'){op=true;sx=1.1;sy=1.8*by}
+  else if(x==='wow'){op=true;sx=1.5;sy=2.6*by}
+  else if(x==='angry'){br=1;sy=by}
+  else if(x==='sad'){br=-1;sy=1.6*by}
+  else if(x==='dizzy'){op=true;sx=1.2}
+  else if(x==='hide')eyes=false;
+  else if(x==='yawn'){op=true;sy=.3;sx=1.2}
+  if(x===null){if(f.pi===1)sy=.85*by;else if(f.pi===2){br=1;sy=by}}
+  if(f.mode==='stare'||f.mode==='gazepl'){const g=1+Math.min(f.k,4)*.3;sx*=g;sy=1.5*g}
+  if(hurt){eyes=car=sm=op=false;br=0}
+  f.em.forEach((e,j)=>{e.visible=eyes;e.scale.set(sx,x==='dizzy'?(1.4+.9*Math.sin(T*9+j*2.5))*by:sy,.5)});
+  f.hp.forEach(c=>c.visible=car);
+  f.smile.visible=sm;f.open.visible=op;f.mouth.visible=sm||op;
+  f.open.scale.set(x==='yawn'?1.2:1,x==='yell'?1.2+.3*Math.sin(T*14):x==='yawn'?1.3+Math.sin(clamp((1.6-f.exT)/1.6,0,1)*Math.PI)*1.1:1,.5);
+  f.br.forEach((b,j)=>{b.visible=br!==0;b.children[0].rotation.z=(j?1:-1)*br*.45});
+  const cr=f.mode==='cry';f.tears.forEach((t,j)=>{t.visible=cr;if(cr){const p=(T*1.4+j*.5)%1,y=.05-p*.3,x=t.userData.x;t.position.set(x,y,Math.sqrt(Math.max(.01,R*R-x*x-y*y))+.05)}})}
+function fWob(f){const T=performance.now()*.001,m=f.mode;if(m==='sleep')return .28;if(f.ex==='dizzy'&&f.exT>0)return Math.sin(T*7)*.2;
+  if((m==='hug'||m==='comfort')&&f.ds)return Math.sin(T*9)*.18;if(m==='train'||m==='lead'||m==='ring')return Math.sin(T*6+f.ms)*.12;
+  if(m==='laugh')return Math.sin(T*16)*.08;if(f.ex==='yawn'&&f.exT>0)return -.12;return 0}
+function fPose(f){const T=performance.now()*.001,m=f.mode;if(m==='sleep')return .9+.04*Math.sin(T*3+f.ms);if(m==='crouch')return .7;if(m==='brawl'&&f.bf){if(f.bf.ph===1)return .72;if(f.bf.ph===2)return 1.12}if(m==='flat')return .3+.05*Math.sin(T*12);if(m==='bow'&&f.ds)return .7+.3*Math.abs(Math.cos(f.k*4));if(m==='sneak'&&!f.ds)return .78;
+  if(f.exT>0&&f.ex==='hide')return .85;if(f.exT>0&&f.ex==='yawn')return 1.08;return 1+.025*Math.sin(T*2.6+f.ms)}
+function fEmote(f){const T=performance.now()*.001,on=f.exT>0,m=f.mode;let k=null;
+  if(m==='sleep')k='Z';else if((on&&f.ex==='angry')||m==='tantrum')k='ang';
+  else if(f.hrt>0||((m==='hug'||m==='bow')&&f.ds))k='hrt';else if((on&&f.ex==='wow')||m==='cheer')k='!';
+  else if(m==='inspect'||m==='curious'||m==='gaze'||m==='gazepl')k='?';else if(m==='brawl'||m==='revenge')k='ang';
+  if(f.sg&&f.sgU>T)k=f.sg;f.emo.visible=!!k;if(!k)return;f.emo.material.map=EMO[k];
+  const z=k==='Z'?(T*.6+f.ms)%1:0;f.emo.position.set(f.x+.25+z*.3,f.h+R*FS*2+.45+z*.5+Math.sin(T*4+f.ms)*.06,f.z);f.emo.material.opacity=k==='Z'?1-z:1}
+function fJit(f){if(f.L&&(f.L.E.fear>.7||f.L.E.surprise>.75))return Math.sin(performance.now()*.03)*.008;if((f.mode==='ram'&&f.k<.9)||f.mode==='tantrum'||f.mode==='cry'||f.mode==='flat'||(f.mode==='stare'&&f.k>f.st-1.2)||(f.mode==='brawl'&&f.bf&&f.bf.ph<2))return Math.sin(performance.now()*.03)*(f.mode==='cry'?.006:.01);return 0}
+function newStroll(f){const a=rr(0,6.283),r=rr(2,5);let x=f.x+Math.sin(a)*r,z=f.z+Math.cos(a)*r;
+  const P=LCA.place(f);if(P){x=P.x+rr(-1,1);z=P.z+rr(-1,1)}if(Math.hypot(x-pos.x,z-pos.z)>16){x=pos.x+rr(-6,6);z=pos.z+rr(-6,6)}f.cx=x;f.cz=z}
+function endM(f){const m=f.mode;f.dn=m;LCA.ended(f,m);if(m==='spin'||m==='shadow')ex(f,'dizzy',1.6);else if(m==='dash'||m==='backwalk')ex(f,'happy',1);else if(m==='zoom')ex(f,'happy',1.2);else if(m==='tantrum')ex(f,'sad',1.4);
+  else if(m==='ring'){ex(f,'dizzy',1.4);f.sqv=5}
+  else if(m==='stack'){f.gr=false;f.vy=6;f.vx+=rr(-3,3);f.vz+=rr(-3,3);ex(f,'happy',1)}
+  else if(m==='balloon'){ex(f,'dizzy',2);f.vy=3;f.gr=false}
+  else if(m==='flat'){f.jd=.01;f.sj=1;ex(f,'yell',1)}
+  else if(m==='cry'){if(f.cm2){ex(f,'happy',1.5);f.hrt=1.5;fhop(f)}f.cm2=0}
+  else if(m==='comfort'&&f.ds){ex(f,'happy',1.2);f.hrt=1}
+  else if(m==='train'||m==='lead'||m==='peek')ex(f,'happy',1);
+  f.mode=null;f.mo=null;f.idl=(called?rr(5,11):rr(1.5,5))*PT[f.pi].idm}
+function okP(f){const o=f.mo,m=f.mode;if(m==='brawl')return !!f.bf&&!!o&&o.mode==='brawl'&&o.bf===f.bf;if(m==='part')return true;if(m==='watch'||m==='inspect'||m==='flee'||m==='cheer')return !!o&&isWeird(o);if(m==='comfort')return !!o&&o.mode==='cry';if(m==='train')return !!o&&(o.mode==='train'||o.mode==='lead');if(m==='stack')return !!o&&(o.mode==='carry'||o.mode==='stack');if(m==='carry')return fol.some(b=>b.mode==='stack'&&b.mo===f);if(m==='stare')return !!o&&o.mode==='stare';if(m==='crouch')return !!o&&o.mode==='leap'&&o.mo===f;if(m==='leap')return !!o&&o.mode==='crouch'&&o.mo===f;if(m==='chase'||m==='run')return o&&(o.mode==='chase'||o.mode==='run');if(m==='dance')return o&&o.mode==='dance';if(m==='tail')return o&&o.mode==='stroll';if(m==='chat')return !!o&&o.mode==='chat';return true}
+const WEIRD={spin:1,zoom:1,tantrum:1,dance:1,ram:1,chase:1,run:1,tail:1,sleep:1,revenge:1,brawl:1,train:1,lead:1,ring:1,cry:1,showoff:1,leap:1,crouch:1,peek:1,stack:1,carry:1,balloon:1,stare:1,flat:1,bow:1,backwalk:1,shadow:1,dash:1,gazepl:1};
+const isWeird=o=>!!WEIRD[o.mode]||(o.ex==='dizzy'&&o.exT>0);
+function noticeF(f){let b=null,bd=8;for(const o of fol){if(o===f||!isWeird(o))continue;const d=Math.hypot(o.x-f.x,o.z-f.z);if(d<bd){bd=d;b=o}}return b}
+function doReact(f,w,rt){LCA.react(f,w,rt);
+  if(rt==='laugh'){setM(f,'laugh',rr(2,3.5),w);ex(f,'happy',f.mt)}
+  else if(rt==='watch'){setM(f,'watch',rr(2.5,4.5),w);ex(f,'wow',1.2)}
+  else if(rt==='inspect'){setM(f,'inspect',rr(3.5,5),w)}
+  else if(rt==='flee'){setM(f,'flee',rr(2,3.5),w);ex(f,'wow',f.mt);fhop(f)}
+  else if(rt==='scold'){f.rv=w}
+  else if(rt==='cheer'){setM(f,'cheer',rr(3,6),w);ex(f,'yell',.8)}
+  else if(rt==='part'){if(fol.some(b=>b.mode==='part')||Math.random()<.35)return doReact(f,w,'cheer');setM(f,'part',9,w);f.k=0;ex(f,'wow',1)}
+  else if(rt==='comfort'){setM(f,'comfort',rr(3,5),w);ex(f,'sad',1)}
+  else if(rt==='play'&&(w.mode==='stack'||w.mode==='carry')){let t=w;for(let s=0;s<6;s++){const nx=fol.find(b=>b.mode==='stack'&&b.mo===t&&b!==f);if(!nx)break;t=nx}setM(f,'stack',rr(3,5),t);ex(f,'happy',1.5)}
+  else if(rt==='play'){if(w.mode==='ring'&&w.rg){const g=w.rg;setM(f,'ring',Math.max(1.5,w.mt));f.rg=g;f.ri=g.n++;ex(f,'happy',1.5)}
+    else if(w.mode==='train'||w.mode==='lead'){let t=w;for(let s=0;s<10;s++){const nx=fol.find(b=>b.mode==='train'&&b.mo===t&&b!==f);if(!nx)break;t=nx}setM(f,'train',Math.max(1.5,w.mt),t);ex(f,'happy',1.5)}
+    else doReact(f,w,'laugh')}
+  else if(rt==='join'){const jm={spin:'spin',zoom:'zoom',dance:'hops',chase:'zoom',run:'zoom',tail:'hops',sleep:'sleep',tantrum:'hops',ram:'hops',revenge:'zoom',flat:'flat',bow:'bow',balloon:'balloon'};
+    let m=jm[w.mode]||'hops';if(m==='sleep'&&called)m='hops';
+    if(m==='spin'){setM(f,m,rr(1.4,2.2));fhop(f);ex(f,'yell',f.mt)}
+    else if(m==='zoom'){setM(f,m,rr(2,3));ex(f,'yell',f.mt)}
+    else if(m==='sleep')setM(f,m,rr(4,6));
+    else{setM(f,m,rr(2,3.2));ex(f,'happy',f.mt)}}}
+function startBrawl(a,b,fast){
+  if(!LCA.brawlOK(a,b)){[a,b].forEach(x=>{x.mode=null;x.mo=null;x.rv=null;x.idl=rr(2,4);ex(x,'dizzy',1.2)});return}LCA.brawlStart(a,b);const B={a,b,ph:0,t:fast?.45:.9,r:0,max:2+Math.floor(Math.random()*3)};
+  [[a,b],[b,a]].forEach(([x,y])=>{setM(x,'brawl',60,y);x.bf=B;x.rv=null;x.cr=0;x.hu=0;ex(x,'yell',3)})}
+function brawlHit(B){
+  const a=B.a,b=B.b,dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||1,nx=dx/d,nz=dz/d;B.ph=3;B.t=.85;B.r++;
+  [[a,-1],[b,1]].forEach(([x,sg])=>{x.vx=nx*sg*9;x.vz=nz*sg*9;x.vy=5.5;x.gr=false;x.sqv=-3;x.hu=.55;ex(x,'dizzy',.9)});
+  const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
+  for(let i=0;i<8;i++){const an=i/8*6.283;puff(mx+Math.cos(an)*.3,mz+Math.sin(an)*.3,Math.cos(an)*3,rr(.4,1),Math.sin(an)*3,rr(.3,.5)*FS*1.4,rr(2.5,3.5),rr(.7,1.1))}
+  fol.forEach(c=>{if(c!==a&&c!==b&&c.gr&&Math.hypot(c.x-mx,c.z-mz)<5&&Math.random()<.5){c.jd=.01;ex(c,'wow',.8)}})}
+function endBrawl(B){
+  const a=B.a,b=B.b;[a,b].forEach(x=>{x.mode=null;x.mo=null;x.bf=null;x.idl=rr(3,6);x.hu=0});
+  if(Math.random()<.5){LCA.peace(a,b);[a,b].forEach(x=>{ex(x,'happy',2.2);x.sqv=3;x.jd=rr(.05,.4);x.gz=x===a?b:a;x.gzT=2})}
+  else{const wa=(a.pi===2?1.4:1)*Math.random()>(b.pi===2?1.4:1)*Math.random(),w=wa?a:b,l=wa?b:a;
+    setM(w,'showoff',3);LCA.win(w,l);ex(w,'yell',1);
+    const dx=l.x-w.x,dz=l.z-w.z,d=Math.hypot(dx,dz)||1;l.vx+=dx/d*5;l.vz+=dz/d*5;l.vy=5;l.gr=false;l.sqv=-3;
+    ex(l,'dizzy',2)}}
+function fShock(imp){if(imp<6)return;fol.forEach(f=>{if(Math.hypot(pos.x-f.x,pos.z-f.z)<5&&f.gr){f.jd=rr(.02,.2);ex(f,'wow',1.1)}})}
+function fBehave(f,i,dt){f.cd-=dt;
+  const dpl=Math.hypot(pos.x-f.x,pos.z-f.z);
+  if(called&&dpl>11&&f.mode){f.mode=null;f.mo=null;f.idl=1.5}
+  if(f.rv&&f.mode!=='revenge'&&f.mode!=='brawl'){const t=f.rv;f.rv=null;f.hu=0;f.cr=0;setM(f,'revenge',rr(4,6),t);ex(f,'yell',f.mt)}
+  if(f.cr&&!(f.hu>0)&&f.mode!=='revenge'&&f.mode!=='brawl'){f.cr=0;setM(f,'cry',rr(3,5));ex(f,'sad',f.mt)}
+  if(!f.mode){
+    f.lkT-=dt;if(f.lkT<=0){f.lkT=rr(1.5,4);f.lk=Math.random()<.45?0:rr(-1.5,1.5)}
+    if(f.gr&&Math.random()<dt*.12*PT[f.pi].jv)f.jd=.01;
+    if(!(f.exT>0)&&Math.random()<dt*(f.pi===1?.12:.03))ex(f,'yawn',1.6);
+    f.rc-=dt;if(f.rc<=0){f.rc=rr(.3,.6);const w=noticeF(f);if(w){f.gz=w;f.gzT=1.5;const P=PT[f.pi],rt=P.rx[w.mode]||(w.ex==='dizzy'?P.rx.dizzy:null);
+      if(rt&&!(f.hu>0)&&f.cd<=0&&!(called&&dpl>9)&&Math.random()<P.soc*(w.mode==='brawl'?.7:1)){f.cd=rr(4,8);doReact(f,w,rt);return null}}}
+    f.idl-=dt;if(f.idl>0||(called&&dpl>9))return null;
+    if(f.hu>0){f.idl=.5;return null}
+    let m=f.force||pick(LCA.weights(f));const o=LCA.buddy(f,m);f.force=null;
+    const fr=fol.filter(b=>b!==f&&!b.mode&&!(b.hu>0)&&Math.hypot(b.x-f.x,b.z-f.z)<12);
+    if(['chase','dance','ram','tail','leap','sneak','stack','stare'].includes(m)&&(o===f||o.mode||o.hu>0)&&!(o!==f&&o.mode==='sleep'&&(m==='ram'||m==='sneak')))m='hops';
+    if(m==='brawl'&&!fr.length)m='hops';if(m==='train'&&fr.length<1)m='stroll';if(m==='ring'&&fr.length<2)m='hops';
+    if((m==='sleep'||m==='curious')&&(dpl<5||called))m=m==='sleep'?'spin':'hops';LCA.cool(f,m);
+    if(m==='spin'){setM(f,m,rr(1.4,2.2));fhop(f);ex(f,'yell',f.mt)}
+    else if(m==='hops'){setM(f,m,rr(2,3.2));ex(f,'happy',f.mt)}
+    else if(LCA.start(f,m,o)){}
+    else if(m==='tantrum'){setM(f,m,rr(1.8,2.6));ex(f,'angry',f.mt)}
+    else if(m==='zoom'){setM(f,m,rr(2.5,3.5));ex(f,'yell',f.mt)}
+    else if(m==='sleep')setM(f,m,rr(4,7));
+    else if(m==='stroll'){setM(f,m,rr(2,4));newStroll(f)}
+    else if(m==='curious')setM(f,m,rr(4,6));
+    else if(m==='chase'){setM(f,m,rr(5,8),o);setM(o,'run',f.mt,f);ex(f,'yell',f.mt);ex(o,'wow',1)}
+    else if(m==='dance'){setM(f,m,rr(4,5.5),o);setM(o,'dance',f.mt,f);f.cx=o.cx=(f.x+o.x)/2;f.cz=o.cz=(f.z+o.z)/2;
+      f.ang=Math.atan2(f.z-f.cz,f.x-f.cx);o.ang=f.ang+Math.PI;f.dr=Math.hypot(f.x-f.cx,f.z-f.cz);o.dr=f.dr;ex(f,'happy',f.mt);ex(o,'happy',f.mt)}
+    else if(m==='ram'){setM(f,m,3,o);ex(f,'yell',2.4)}
+    else if(m==='train'){const t=rr(6,9),n=Math.min(fr.length,1+Math.floor(Math.random()*3));setM(f,'lead',t);newStroll(f);ex(f,'yell',1.2);let pv=f;fr.sort(()=>Math.random()-.5).slice(0,n).forEach(b=>{setM(b,'train',t,pv);ex(b,'happy',1.5);pv=b})}
+    else if(m==='ring'){const mem=[f,...fr.sort(()=>Math.random()-.5).slice(0,1+Math.floor(Math.random()*3))],t=rr(5,7),g={x:0,z:0,a:0,n:mem.length,sp:rr(1.8,2.6)*(Math.random()<.5?1:-1)};
+      mem.forEach(b=>{g.x+=b.x/mem.length;g.z+=b.z/mem.length});mem.forEach((b,j)=>{setM(b,'ring',t);b.rg=g;b.ri=j;ex(b,'happy',1.5)})}
+    else if(m==='leap'){setM(f,m,5,o);setM(o,'crouch',5,f);ex(f,'yell',1);ex(o,'wow',1)}
+    else if(m==='sneak')setM(f,m,rr(5,7),o);
+    else if(m==='peek')setM(f,m,rr(3,4.5),Math.random()<.5?PL:o);
+    else if(m==='brawl'){const c=fr;ex(f,'yell',.6);startBrawl(f,LCA.fpick(f,c),0)}
+    else if(m==='hug')setM(f,m,rr(4,6));
+    else if(m==='stack'){setM(f,m,rr(4,6),o);setM(o,'carry',f.mt+1);newStroll(o);ex(f,'happy',1.5);ex(o,'wow',1)}
+    else if(m==='balloon'){setM(f,m,rr(3.5,4.5));ex(f,'wow',1.3)}
+    else if(m==='stare'){const st=rr(2.5,4.5),l=Math.random()<.5;setM(f,m,st+2,o);setM(o,'stare',st+2,f);f.st=o.st=st;f.los=l;o.los=!l}
+    else if(m==='flat'){setM(f,m,rr(2,3.5));ex(f,'happy',f.mt)}
+    else if(m==='bow')setM(f,m,rr(4,6));
+    else if(m==='showoff'){setM(f,m,rr(2.5,3.5));ex(f,'yell',.8)}
+    else if(m==='tail'){setM(f,m,rr(5,7),o);setM(o,'stroll',f.mt);newStroll(o);ex(o,'wow',1.2);ex(f,'happy',f.mt)}
+  }
+  if(!f.mode)return null;
+  f.mt-=dt;if(f.mt<=0||!okP(f)){endM(f);return null}
+  const o=f.mo;
+  switch(f.mode){
+    case 'spin':return[0,0];
+    case 'hops':if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=rr(.35,.5)}return[0,0];
+    case 'tantrum':if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=.28}return[0,0];
+    case 'zoom':{f.k-=dt;if(f.k<=0){f.k=rr(.3,.7);f.ang=dpl>14?Math.atan2(pos.x-f.x,pos.z-f.z):rr(0,6.283)}
+      if(Math.random()<dt*.8)fhop(f);return[Math.sin(f.ang)*f.ms*1.6,Math.cos(f.ang)*f.ms*1.6]}
+    case 'sleep':if(f.fk){if((f.mt<.9||dpl<2)&&!f.fkd){f.fkd=1;ex(f,'yell',.9);fhop(f);f.mt=.01}return[0,0]}if(dpl<3.2&&!f.nz){ex(f,'wow',1.1);fhop(f);endM(f);return null}return[0,0];
+    case 'stroll':if(Math.hypot(f.cx-f.x,f.cz-f.z)<.4)newStroll(f);return goTo(f,f.cx,f.cz,3.2);
+    case 'curious':{const sp=Math.hypot(vel.x,vel.z);
+      if(dpl<3&&sp>3){ex(f,'wow',1);fhop(f);endM(f);return null}
+      const a=Math.atan2(f.x-pos.x,f.z-pos.z),tx=pos.x+Math.sin(a)*2.6,tz=pos.z+Math.cos(a)*2.6;
+      if(!f.ds&&Math.hypot(tx-f.x,tz-f.z)<.5){f.ds=1;ex(f,'wow',1.4)}
+      if(f.ds===1&&f.mt<1.5){f.ds=2;ex(f,'happy',1.5);fhop(f)}
+      return goTo(f,tx,tz,3.6)}
+    case 'chase':{const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;f.k+=dt;
+      if(d<RF*2+.2&&f.k>.8){fBump(o,dx/d,dz/d,5);ex(o,'dizzy',2);ex(f,'happy',1.5);f.mode='run';o.mode='chase';o.mo=f;f.k=o.k=0;return[0,0]}
+      return icpt(f,o,f.ms*1.05)}
+    case 'run':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;f.hs+=dt;const z=Math.sin(f.hs*6)*.9;
+      let vx=dx/d-dz/d*z,vz=dz/d+dx/d*z;const px=pos.x-f.x,pz=pos.z-f.z,pd=Math.hypot(px,pz);if(pd>13){vx+=px/pd*1.5;vz+=pz/pd*1.5}
+      if(Math.random()<dt*.6)fhop(f);const l=Math.hypot(vx,vz)||1,s=f.ms*1.1;return[vx/l*s,vz/l*s]}
+    case 'dance':{f.ang+=dt*2.4;f.dr+=(.9-f.dr)*(1-Math.exp(-2*dt));f.hs-=dt;if(f.hs<=0&&f.gr){f.jd=.01;f.hs=.75}
+      return goTo(f,f.cx+Math.cos(f.ang)*f.dr,f.cz+Math.sin(f.ang)*f.dr,10)}
+    case 'ram':{const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;f.k+=dt;
+      if(f.k<.9)return[-dx/d*1.8,-dz/d*1.8];
+      if(!f.ds){f.ds=1;f.dx=dx/d;f.dz=dz/d}
+      if(d<RF*2+.15||f.k>1.7){fBump(o,dx/d,dz/d,9,f);ex(o,'dizzy',2.2);ex(f,'happy',1.4);f.vx-=dx/d*3;f.vz-=dz/d*3;
+        if(Math.random()<.4){o.rv=null;o.hu=0;startBrawl(f,o,1);return null}
+        f.mode=null;f.mo=null;f.idl=rr(2,5);return null}
+      return[f.dx*12,f.dz*12]}
+    case 'revenge':{const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;f.k+=dt;
+      if(d>18){ex(f,'sad',1.5);endM(f);return null}
+      if(o.pl?d<R+RF+.22:d<RF*2+.2){
+        if(o.pl){vel.x+=dx/d*4;vel.z+=dz/d*4;sqv=-2.5}else{fBump(o,dx/d,dz/d,8,f,true);ex(o,'dizzy',2);if(Math.random()<.3){o.rv=null;o.hu=0;startBrawl(f,o,1);return null}}
+        ex(f,'happy',1.6);fhop(f);f.vx-=dx/d*3;f.vz-=dz/d*3;f.mode=null;f.mo=null;f.idl=rr(2,4);return null}
+      return icpt(f,o,f.ms*1.3)}
+    case 'lead':if(Math.hypot(f.cx-f.x,f.cz-f.z)<.5)newStroll(f);if((f.hs-=dt)<=0){f.hs=rr(1,1.8);if(Math.random()<.5)fhop(f)}return goTo(f,f.cx,f.cz,4);
+    case 'train':{const sp=Math.hypot(o.vx,o.vz),dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1,bx=sp>.3?-o.vx/sp:dx/d,bz=sp>.3?-o.vz/sp:dz/d;
+      if(!o.gr&&o.vy>6.5&&f.gr&&!(f.jd>0))f.jd=.12;return goTo(f,o.x+bx,o.z+bz,6.5)}
+    case 'ring':{const g=f.rg;g.a+=g.sp*dt/g.n;const a=g.a+f.ri*6.283/g.n,r=1+g.n*.2;if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=rr(.6,.9)}
+      return goTo(f,g.x+Math.cos(a)*r,g.z+Math.sin(a)*r,9)}
+    case 'crouch':f.gz=o;f.gzT=.3;return[0,0];
+    case 'leap':{const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;
+      if(!f.ds){if(d>2.5)return goTo(f,o.x-dx/d*2.3,o.z-dz/d*2.3,f.ms);f.ds=1;f.dx=dx/d;f.dz=dz/d;f.jd=.01;ex(f,'yell',.8);return[f.dx*6.5,f.dz*6.5]}
+      if(f.ds===1){if(!f.gr)f.ds=2;return[f.dx*6.5,f.dz*6.5]}
+      if(f.gr){if(Math.random()<.6){setM(o,'leap',5,f);setM(f,'crouch',5,o);ex(f,'happy',1.2);ex(o,'yell',.8);return[0,0]}
+        ex(f,'happy',1.5);ex(o,'happy',1.2);endM(f);return null}
+      return[f.dx*6.5,f.dz*6.5]}
+    case 'sneak':{const tx=o.x-Math.sin(o.hd)*1.2,tz=o.z-Math.cos(o.hd)*1.2,d=Math.hypot(o.x-f.x,o.z-f.z)||1;f.gz=o;f.gzT=.3;
+      if(!f.ds){if(Math.hypot(tx-f.x,tz-f.z)<.5||d<1.1){f.ds=1;f.k=0}return goTo(f,tx,tz,2.2)}
+      f.k+=dt;
+      if(f.ds===1&&f.k>.5){f.ds=2;ex(f,'yell',.8);fhop(f);ex(o,'wow',1.4);if(o.gr)o.jd=.01;o.vx+=(o.x-f.x)/d*5;o.vz+=(o.z-f.z)/d*5;o.gz=f;o.gzT=1.5;
+        if(o.pi===2)o.rv=f;else if(o.pi===1)o.cr=1}
+      if(f.ds===2&&f.k>1.1){setM(f,'laugh',rr(2,3),o);ex(f,'happy',f.mt)}
+      return[0,0]}
+    case 'peek':{f.gz=o;f.gzT=.3;f.k+=dt;const cy=Math.floor(f.k/1.4),c=f.k-cy*1.4;
+      if(c<.8)ex(f,'hide',.1);else if(f.ds!==cy+1){f.ds=cy+1;ex(f,'wow',.6);fhop(f)}
+      const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;if(d>4.5)return goTo(f,o.x-dx/d*3.2,o.z-dz/d*3.2,4);return[0,0]}
+    case 'hug':{const dx=pos.x-f.x,dz=pos.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;
+      if(d>R+RF+.15){const s=Math.min(f.ms,d*3);return[dx/d*s,dz/d*s]}
+      if(!f.ds){f.ds=1;ex(f,'happy',f.mt)}return[0,0]}
+    case 'cry':if(f.gr&&(f.hs-=dt)<=0){f.hs=rr(.5,.9);f.sqv=-1.5}return[0,0];
+    case 'comfort':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;
+      if(d<RF*2+.35){if(!f.ds){f.ds=1;f.k=0;ex(f,'happy',2);LCA.talk([[f,LCA.pk(['Jangan nangis ya, cup cup','Udah, jangan sedih ya']),0],[o,LCA.pk(['Hiks... makasih ya','Hiks... aku sedih tadi']),1.6,'sad'],[f,LCA.pk(['Kan kita teman','Aku di sini kok, temenin kamu']),3.4,'happy'],[o,LCA.pk(['Iya... kamu baik deh','Makasih ya, aku udah baikan']),5.2,'happy']])}f.k+=dt;f.hrt=.3;if(f.k>3){o.mt=Math.min(o.mt,.3);o.cm2=1}}
+      return goTo(f,o.x+dx/d*(RF*2+.1),o.z+dz/d*(RF*2+.1),f.ms)}
+    case 'showoff':{if(!f.ds&&f.gr){f.ds=1;f.sj=1;f.jd=.01}if(f.ds===1&&!f.gr)f.ds=2;
+      if(f.ds===2&&f.gr){f.ds=3;ex(f,'happy',1.5);fol.forEach(b=>{if(b!==f&&!b.mode&&!(b.hu>0)&&Math.hypot(b.x-f.x,b.z-f.z)<8){
+        if(b.pi===2){ex(b,'angry',1.5);b.gz=f;b.gzT=1.5}else{setM(b,'laugh',rr(1.2,2),f);ex(b,'happy',b.mt)}}})}
+      return[0,0]}
+    case 'stack':{const d=Math.hypot(o.x-f.x,o.z-f.z);if(!f.ds){if(d<1.2&&f.gr){f.ds=1;f.jd=.01;f.sj=1}return goTo(f,o.x,o.z,f.ms)}return[0,0]}
+    case 'carry':if(Math.hypot(f.cx-f.x,f.cz-f.z)<.4)newStroll(f);if(!(f.exT>0))ex(f,'yell',.5);return goTo(f,f.cx,f.cz,2);
+    case 'balloon':{f.k+=dt;if(f.k<1.2){if(!(f.exT>0))ex(f,'wow',.3);return[0,0]}if(f.ex!=='happy'||!(f.exT>0))ex(f,'happy',5);return[Math.sin(f.k*1.3)*1.2,Math.cos(f.k*.9)*1.2]}
+    case 'stare':{f.k+=dt;f.gz=o;f.gzT=.3;const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;
+      if(f.k>f.st){const L=f.los?f:o,W=L===f?o:f;setM(W,'showoff',3);ex(W,'yell',.8);if(L.pi===2){setM(L,'tantrum',2.4);ex(L,'angry',2.4)}else{L.mode=null;L.mo=null;L.idl=2;L.cr=1}return[0,0]}
+      return goTo(f,o.x+dx/d*1.3,o.z+dz/d*1.3,3)}
+    case 'flat':f.k+=dt;return[Math.sin(f.k*9)*1.5,0];
+    case 'bow':{const dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;if(d>3)return goTo(f,pos.x+dx/d*2.4,pos.z+dz/d*2.4,f.ms);
+      if(!f.ds){f.ds=1;ex(f,'happy',f.mt)}f.k+=dt;return[0,0]}
+    case 'brawl':{const B=f.bf,me=B.a===f,dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1,nx=dx/d,nz=dz/d;f.gz=o;f.gzT=.3;
+      if(me){B.t-=dt;
+        if(B.ph===0&&B.t<=0){B.ph=1;B.t=.45}
+        else if(B.ph===1&&B.t<=0){B.ph=2;B.t=1.6}
+        else if(B.ph===2&&(d<RF*2+.14||B.t<=0)){if(d<RF*2+.6)brawlHit(B);else{B.ph=0;B.t=.4}}
+        else if(B.ph===3&&B.t<=0){if(B.r>=B.max){endBrawl(B);return null}B.ph=0;B.t=.55}}
+      if(B.ph<3&&!(f.exT>.15))ex(f,'yell',.5);
+      if(B.ph===0){if(f.gr&&Math.random()<dt*1.2)fhop(f);return d>2.2?[nx*3,nz*3]:[0,0]}
+      if(B.ph===1)return[-nx*4,-nz*4];
+      if(B.ph===2)return[nx*13,nz*13];
+      return[0,0]}
+    case 'cheer':{f.gz=o;f.gzT=.3;const d=Math.hypot(o.x-f.x,o.z-f.z)||1;
+      if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=rr(.3,.55)}
+      if(!(f.exT>0))ex(f,Math.random()<.5?'yell':'happy',.6);
+      if(d>6)return goTo(f,o.x+(f.x-o.x)/d*4.5,o.z+(f.z-o.z)/d*4.5,4.5);
+      if(d<3)return[(f.x-o.x)/d*3,(f.z-o.z)/d*3];return[0,0]}
+    case 'part':{f.gz=o;f.gzT=.3;
+      if(f.ds){f.k+=dt;if(f.k>1.4){ex(f,'happy',1.5);endM(f)}return[0,0]}
+      const B=o.bf;if(!B||o.mode!=='brawl'){endM(f);return null}
+      const p=B.a===o?B.b:B.a,mx=(o.x+p.x)/2,mz=(o.z+p.z)/2,d=Math.hypot(mx-f.x,mz-f.z);f.k+=dt;
+      if(d<1.1||f.k>4){f.ds=1;f.k=0;ex(f,'yell',.8);fhop(f);f.hrt=1.6;
+        const dx=p.x-o.x,dz=p.z-o.z,dd=Math.hypot(dx,dz)||1,ux=dx/dd,uz=dz/dd;
+        [[o,-1,p],[p,1,o]].forEach(([b,sg,other])=>{b.vx=ux*sg*7;b.vz=uz*sg*7;b.vy=3.5;b.gr=false;b.sqv=-2.5;b.bf=null;b.mode=null;b.mo=null;b.idl=rr(3,6);b.hu=0;ex(b,'happy',1.6);b.gz=other;b.gzT=2});LCA.mediate(f,o,p);
+        return[0,0]}
+      return goTo(f,mx,mz,f.ms*1.4)}
+    case 'watch':{const d=Math.hypot(o.x-f.x,o.z-f.z)||1;f.gz=o;f.gzT=.3;
+      if(d>5.5)return goTo(f,o.x+(f.x-o.x)/d*4,o.z+(f.z-o.z)/d*4,3.4);return[0,0]}
+    case 'laugh':{f.gz=o;f.gzT=.3;if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=rr(.22,.4)}return[0,0]}
+    case 'inspect':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;
+      if(d<2.1&&!f.ds){f.ds=1;ex(f,'wow',1.3)}
+      if(f.ds===1&&f.mt<1.5){f.ds=2;ex(f,'happy',1.2);fhop(f)}
+      return goTo(f,o.x+dx/d*1.7,o.z+dz/d*1.7,4.2)}
+    case 'flee':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;
+      if(d>10){endM(f);return null}if(Math.random()<dt*.5)fhop(f);
+      const px=pos.x-f.x,pz=pos.z-f.z,pd=Math.hypot(px,pz);let vx=dx/d,vz=dz/d;if(pd>12){vx+=px/pd;vz+=pz/pd}
+      const l=Math.hypot(vx,vz)||1;return[vx/l*f.ms*1.2,vz/l*f.ms*1.2]}
+    case 'tail':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1,sp=Math.hypot(o.vx,o.vz);
+      return goTo(f,o.x+(sp>.3?-o.vx/sp:dx/d)*1.1,o.z+(sp>.3?-o.vz/sp:dz/d)*1.1,f.ms)}
+  }
+  {const lr=lcaMode(f,dt,o,dpl);if(lr!==undefined)return lr}
+  return[0,0]}
+// ===== LCA: LIVING CREATURE AI (lapisan perilaku lokal & offline, tanpa server/API) =====
+// Persepsi terbatas + emosi + kepribadian campuran + ingatan kecil + hubungan sosial + utility AI
+// + perilaku absurd ber-cooldown + kejadian spontan + reaksi ke pemain. Memakai ulang sistem mode/ekspresi lama.
+const LCA=(()=>{
+const EK=['joy','sad','anger','fear','curio','shy','surprise','confused','bored','sleepy','pride','jealous','excite'];
+const BASE=[
+{brave:.7,curio:.5,energy:.9,lazy:.1,temper:.2,social:.9,dance:.4,shy:.1},
+{brave:.15,curio:.3,energy:.15,lazy:.95,temper:.25,social:.5,dance:.1,shy:.6},
+{brave:.85,curio:.3,energy:.6,lazy:.3,temper:.95,social:.4,dance:.1,shy:.05},
+{brave:.5,curio:.4,energy:.8,lazy:.2,temper:.2,social:.85,dance:.95,shy:.2},
+{brave:.5,curio:.95,energy:.6,lazy:.2,temper:.2,social:.6,dance:.2,shy:.3}];
+// cooldown (detik) per perilaku
+const CD={backwalk:30,shadow:40,freeze:35,fakesleep:45,gazepl:30,followpl:25,hidebehind:15,dash:20,attn:30,seek:25,tiru:25,kejarpl:40,tantang:35,
+ prank:45,brawl:50,ram:35,tantrum:14,ring:22,train:22,stack:25,dance:14,leap:18,stare:25,showoff:12,sneak:20,chase:16,balloon:30,flat:20,bow:20,peek:12,hug:15,tail:20,hops:4,spin:10,zoom:10,curious:10};
+// perilaku berprioritas rendah: boleh dibatalkan bila ada kejadian lebih penting
+const SOCM={dance:1,train:1,lead:1,ring:1,hug:1,leap:1,stack:1,tail:1,chase:1,comfort:1,cheer:1,seek:1,peek:1};
+const FUNM={hops:1,zoom:1,spin:1,dash:1,shadow:1,backwalk:1,showoff:1,dance:1,ring:1,flat:1,leap:1,balloon:1,chase:1,tiru:1,kejarpl:1,tantang:1};
+const EXPM={stroll:1,curious:1,gaze:1,seek:1,inspect:1,gazepl:1};
+const LOWM={talkpl:1,chat:1,poke:1,nest:1,sleep:1,stroll:1,curious:1,hops:1,spin:1,backwalk:1,shadow:1,dash:1,gaze:1,freeze:1,bow:1,hug:1,peek:1,gazepl:1,followpl:1,attn:1,seek:1};
+const FRM={dance:1,leap:1,stack:1,tail:1,chase:1,train:1,ring:1,hidebehind:1,peek:1};
+const HM={ram:1,sneak:1,tantrum:1};
+const ANG={brawl:1,ram:1,tantrum:1,sneak:1};
+const FRW={dance:1,train:1,ring:1,leap:1,showoff:1,hops:1,zoom:1,stack:1,tail:1,chase:1,spin:1,flat:1};
+const FMODE={dance:1,train:1,lead:1,ring:1,comfort:1,stack:1,carry:1,laugh:1,leap:1,crouch:1,cheer:1,part:1};
+const HMODE={ram:1,revenge:1,sneak:1};
+const EXMAP={joy:'happy',sad:'sad',anger:'angry',fear:'wow',surprise:'wow',sleepy:'yawn',shy:'hide',confused:'dizzy',excite:'yell'};
+const NOW=()=>performance.now()*.001,nrm=a=>Math.atan2(Math.sin(a),Math.cos(a)),B0=buddy;
+const G={news:[],ct:rr(5,8),lc:'',sa:0,lh:heading,t:0,next:rr(12,20),cd:{},ps:0,pj:false,spin:false,run:false,still:false};
+
+// ===== ALASAN + BALON KATA POLOS ala anak kecil =====
+const PH={
+sorry:['Ups, maaf!','Maaf ya!','Nggak sengaja!'],learn:['Aku harus hati-hati...','Jangan nabrak lagi ah!'],pl_slow:['Pelan-pelan dong!','Jangan nabrak terus ya!'],
+prank:['Hehe... diam-diam ah','Sssst...'],prank_hit:['Dor!','Colek!','Hehe, kena!'],prank_sorry:['Maaf ya, becanda!','Jangan marah ya, hehe','Aku cuma jail kok'],
+wp1:['Dia kenapa ya?','Kok diam aja?'],wp2:['Dia tidur?','Colek aja yuk!'],nap:['Aku temenin tidur ya...','Zzz... aku di sini'],wakeup:['Eh, kamu bangun!','Hoaam... lanjut main?'],
+poke:['Colek ah!','Main yuk!'],poke_hit:['Colek!','Hehe, kena!'],poke_ask:['Kamu tidur ya?','Kok nggak bales?'],
+bump_hit:['Aduh! Kamu nabrak!','Ih, sakit!','Waaa!'],bump_player:['Eh! Kamu nabrak aku!','Ih, sakit!'],
+brawl_a:['Aku kesal sama kamu!','Awas ya!'],brawl_b:['Eh! Jangan dong!','Kok aku sih?'],
+peace:['Maaf ya...','Temenan lagi yuk!','Udah ah, nggak marah'],win:['Aku menang! Hore!','Hehe, kuat kan!'],lose:['Huhu... sakit','Aku nggak nangis kok'],
+sulk:['Hmph! Ngambek!','Aku nggak mau main!'],sulkend:['Yaudah, main lagi yuk','Udah nggak marah kok'],
+sleep_tired:['Ngantuk... mau bobo','Capek, bobo dulu ya'],sleep_ok:['Bobo cantik ah'],
+ang_bump:['Tadi kamu nabrak aku!','Kamu nakal tadi!'],ang_jeal:['Kok main sama dia terus?','Aku juga mau main!'],ang_on:['Aku lagi kesal!','Grrr!'],ang_why:['Kesel... nggak tau kenapa!','Pokoknya kesal!'],
+fun_bored:['Bosan! Main ah','Nggak ada kerjaan nih'],fun_need:['Pengen main!','Yuk main!'],fun_joy:['Seneng banget!','Hehehe!'],
+soc_need:['Main bareng yuk!','Aku pengen punya teman'],soc:['Ayo bareng-bareng!','Kita main ya!'],
+exp_curio:['Itu apa ya?','Aku mau lihat!'],exp:['Jalan-jalan ah','Ke sana ah'],
+backwalk:['Lihat, jalan mundur!','Mundur mundur!'],shadow:['Ada bayangan! Tangkap!','Bayanganku nakal!'],freeze:['Ssst... diam dulu','Aku patung!'],
+fakesleep:['Zzz... (pura-pura)','Aku tidur lho... zzz'],gazepl:['Kamu ngapain?','Kamu lagi apa sih?','Kok diam aja?','Halo? Ada orang?'],followpl:['Ikut kamu ah!','Tunggu aku!'],
+hidebehind:['Takut... ngumpet','Malu ah'],dash:['Wuuusss!','Lari... STOP!'],attn:['Lihat aku dong!','Hei, lihat sini!'],
+nest:['Cari tempat enak...','Mau bobo di sana'],seek:['Kamu di mana?','Aku sendirian...'],defend:['Jangan ganggu temanku!','Aku bantu ya!'],hug:['Mau peluk!'],
+startle:['Waa! Kaget!','Hii!'],tiru:['Aku niru kamu ya!','Hehe, ikut-ikutan!'],kejarpl:['Kejar aku dong!','Ayo tangkap aku!'],tantang:['Berani loncat nggak?','Coba tiru aku!'],tg_kena:['Kena! Kejar aku!','Colek! Hehe!'],tg_caught:['Yah, ketangkap! Hehe','Wah, kamu cepat!'],tg_win:['Yey, aku menang!','Kamu lambat, hehe'],tt_ask:['Loncat kayak aku, bisa?','Hup hup hup! Coba kamu!'],tt_ok:['Hebat! Kamu bisa!','Yeay, jago loncat!'],tt_no:['Yah, nggak mau ya...','Hmm, kamu malu ya?'],jumpmimic:['Aku juga loncat!','Hup!'],spin:['Muter muter!','Wuuu!'],distract:['Eh, apa itu?','Ada apa tuh?'],
+dance:['Pengen nari!','Tralala~'],ring:['Ayo bikin lingkaran!'],train:['Ayo main kereta!'],stack:['Naik ke atasku!'],peek:['Cilukba!'],leap:['Lompat katak!'],
+showoff:['Lihat aku!'],flat:['Gepeng!'],bow:['Hormat...'],stare:['Lomba melotot!'],sneak:['Hehe, kagetin ah'],chase:['Kejar aku!'],balloon:['Aku balon!'],tail:['Ikutin dia ah'],zoom:['Wuuss!'],
+laugh:['Hehe lucu!','Hihihi'],watch:['Wah!','Lihat lihat!'],inspect:['Ih, apa itu?','Aku mau lihat'],flee:['Waa takut!','Lari!'],cheer:['Ayo ayo!','Semangat!'],
+comfort:['Jangan nangis ya','Cup cup'],play:['Aku ikut!','Ikuuut!'],join:['Aku juga!','Mau ikut!'],part:['Udah-udah, jangan berantem!','Eh stop, jangan berantem dong!','Berhenti dong, kita kan teman!'],scold:['Berisik! Diam dong!','Hei! Jangan ribut!']};
+const BCOL=['#fff3b0','#d9e4ff','#ffd0cc','#ffd9f0','#d8f5d0'],BT=new Map(),LOG=[],CNT={};window.__lcaLog=LOG;window.__lcaCnt=CNT;
+function btex(txt,col){const k=txt+col;let t=BT.get(k);if(t)return t;
+  if(BT.size>70){BT.forEach(v=>v.dispose&&v.dispose());BT.clear()}
+  const c=document.createElement('canvas');c.width=256;c.height=80;const g=c.getContext('2d');g.lineJoin='round';
+  const FF='system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';let fs=32;g.font='800 '+fs+'px '+FF;while(fs>14&&g.measureText(txt).width>200){fs-=2;g.font='800 '+fs+'px '+FF}
+  const w=Math.min(244,g.measureText(txt).width+34),x=128-w/2,y=4,h=50,r=22;
+  g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();
+  g.moveTo(120,y+h-1);g.lineTo(128,y+h+18);g.lineTo(138,y+h-1);
+  g.lineWidth=5;g.strokeStyle='#1b1b1b';g.stroke();g.fillStyle=col;g.fill();
+  g.textAlign='center';g.textBaseline='middle';g.fillStyle='#1b1b1b';g.fillText(txt,128,y+h/2+1);
+  t=new THREE.CanvasTexture(c);BT.set(k,t);return t}
+// ucapan -> satu ikon bawaan di atas kepala: ? ! hati marah Z (tanpa balon kata & emoji)
+function sig(t){
+  if(/zzz|ngantuk|bobo|capek|istirahat|tidur|😴/i.test(t))return{k:'Z'};
+  if(/teman|temenan|baikan|selamanya|janji|makasih|maaf|cup cup|jangan nangis|jangan sedih|peluk|kamu baik|baik kok|temenin|tenang|ada aku|🤝|💕|🥰|🤗|🙏/i.test(t))return{k:'hrt'};
+  if(/\?|❓|🤔/.test(t))return{k:'?'};
+  if(/kesal|marah|awas|nakal|galak|berisik|grr|salah|dasar|sini kalau|diam dong|hmph|duluan|ngambek|nabrak|😠|😡|😤|⚔/i.test(t))return{k:'ang'};
+  if(/huhu|hiks|sakit|sedih|nangis|😢|😭|🥲/i.test(t))return{x:'sad'};
+  return{k:'!'}}
+// (lama) teks -> emoji
+const BE=['🟡','🔵','🟠','🩷','🟢'];
+const EMR=[[/satu, dua/i,'🔢'],[/cup cup|jangan nangis|jangan sedih|temenin/i,'🤗'],[/makasih|kamu baik|baik kok/i,['🥰','😍','☺️']],[/udah-udah|sudah-sudah|udah, udah|berhenti|stop|jangan berantem|masa berantem/i,'✋😟'],
+[/teman|temenan|baikan|selamanya|janji/i,'🤝💕'],[/maaf|ups|nggak sengaja|hati-hati|pelan|kapok|nggak jadi/i,'🙏'],[/menang|hore|hebat|kuat|asyik|yeay|semangat|ayo ayo|seneng/i,['🎉','🥳']],
+[/bola merah/i,'🔴👀'],[/cilukba/i,'🙈'],[/lomba|lari!|lari\.\.\.|wuu|kejar|dash|wuss/i,'🏃💨'],[/nari|tralala/i,'💃🎶'],[/kereta/i,'🚂'],[/lingkaran/i,'⭕'],[/katak|lompat|hup/i,'🐸'],[/balon/i,'🎈'],
+[/peluk/i,'🤗'],[/melotot/i,'👀'],[/hormat/i,'🙇'],[/gepeng/i,'😵'],[/kesal|marah|awas|nakal|galak|berisik|grr|salah|pokoknya|dasar|sini kalau|diam dong|ngambek|hmph|kamu yang duluan|duluan/i,['😠','😡','😤']],
+[/sakit|aduh|waaa|huhu|hiks|sedih|nangis/i,['😢','😭','🥲']],[/takut|gemetar|ngumpet|malu|hii|kaget|waa|lari/i,['😱','😨']],[/bobo|ngantuk|zzz|tidur|capek|istirahat|hoaam/i,'😴'],
+[/hehe|haha|hihi|lucu|becanda|jail|dor|colek|kena|bulat|ngegelinding/i,['😂','🤣','😆']],[/hai|halo/i,'👋'],[/bosan|nggak ada kerjaan/i,'😑'],[/di mana|sendirian/i,'🥺'],[/lihat|wah/i,'👀'],
+[/main|ayo|yuk|ikut|gabung|bareng/i,'🎮'],[/apa|itu|kenapa|kok/i,'🤔']];
+function emo(t){if(!/[A-Za-z]/.test(t))return t;let e='😊';for(const [r,v] of EMR)if(r.test(t)){e=Array.isArray(v)?pk(v):v;break}if(/\?/.test(t)&&e.indexOf('❓')<0)e+='❓';return e}
+const EXI={hrt:'happy','?':null,'!':'yell',ang:'angry',Z:'yawn'};
+// ===== GELEMBUNG TEKS: ucapan bola tampil sebagai balon ucapan di atas kepala =====
+function ensureCv(L){if(L.cv)return;const cv=L.cv=document.createElement('canvas');cv.width=512;cv.height=160;L.tx=new THREE.CanvasTexture(cv);const m=L.sy.material;m.map=L.tx;m.depthTest=false;m.needsUpdate=true;L.sy.renderOrder=19}
+// animasi "sedang mengetik": balon kecil dengan titik tiga yang melompat bergantian (merah kalau lagi marah)
+function typing(f,dur,red){const L=f.L;if(!L.sy)return;ensureCv(L);L.bc=f.aic||BCOL[f.pi%5];if(!(L.typT>0))L.pop=.16;L.typT=dur;L.typR=!!red;L.typA=0;L.sayT=Math.max(L.sayT,dur+.3)}
+// kotak balon seragam: warna pastel sesuai warna bola, garis tipis, bayangan lembut, ekor kecil di tengah bawah
+function bubBox(g,w,h,col,ol){const cx=256,x=cx-w/2,y=130-h,r=Math.min(20,h/2);
+  g.clearRect(0,0,512,160);g.lineJoin='round';g.lineCap='round';g.lineWidth=4;g.strokeStyle=ol;g.fillStyle=col;
+  g.save();g.shadowColor='rgba(0,0,0,.28)';g.shadowBlur=7;g.shadowOffsetY=3;
+  g.beginPath();g.moveTo(cx-9,y+h-1);g.lineTo(cx,y+h+16);g.lineTo(cx+9,y+h-1);g.closePath();g.fill();g.stroke();
+  g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();g.fill();g.stroke();g.restore();
+  g.fillStyle=col;g.fillRect(cx-7.5,y+h-2.5,15,5.5);return y}
+function drawTyp(L){const g=L.cv.getContext('2d'),T=NOW()*(L.typR?10:7),red=L.typR,w=88,h=46;
+  const y=bubBox(g,w,h,red?'#ffd0cc':(L.bc||'#fff'),red?'#8a1010':'#1b1b1b');
+  for(let i=0;i<3;i++){const up=Math.max(0,Math.sin(T-i*.95));g.globalAlpha=.4+.6*up;g.fillStyle=red?'#d62020':'#1b1b1b';
+    g.beginPath();g.arc(256-21+i*21,y+h/2+2-up*6,5.5+up*1.2,0,6.283);g.fill()}
+  g.globalAlpha=1;L.tx.needsUpdate=true}
+// teks balon: ukuran huruf SELALU sama (tidak ada yang besar), balon menyesuaikan panjang teks
+function bub(f,txt){const L=f.L;if(!L.sy)return;L.typT=0;L.pop=.16;
+  ensureCv(L);L.bc=f.aic||BCOL[f.pi%5];
+  const g=L.cv.getContext('2d'),em=!/[A-Za-z]/.test(txt),fs=em?28:25,FF=fs+'px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif';
+  g.font='700 '+FF;let ls=[],cur='';
+  for(const w of txt.split(' ')){const t=cur?cur+' '+w:w;if(g.measureText(t).width>360&&cur){ls.push(cur);cur=w}else cur=t}ls.push(cur);
+  if(ls.length>3){ls=ls.slice(0,3);ls[2]=ls[2].replace(/.{0,2}$/,'')+'...'}
+  const lh=fs*1.25,tw=Math.max(...ls.map(l=>g.measureText(l).width)),w=Math.max(70,tw+34),h=ls.length*lh+18;
+  const y=bubBox(g,w,h,L.bc,'#1b1b1b');
+  g.fillStyle='#1b1b1b';g.textAlign='center';g.textBaseline='middle';g.font='700 '+FF;
+  ls.forEach((l,i)=>g.fillText(l,256,y+9+lh*(i+.5)+1));
+  L.tx.needsUpdate=true;L.sayT=clamp(1.8+txt.length*.07,2.4,5.5)}
+function say(f,txt,pri,to){const L=f.L,t=NOW(),orig=txt;if(!L.sy||(!pri&&t<L.sayCd)||Math.hypot(pos.x-f.x,pos.z-f.z)>26)return;
+  L.sayCd=t+rr(4,6.5);const r=sig(txt);if(r.k){fly(f,r.k,to);if(EXI[r.k]&&!(f.exT>0))ex(f,EXI[r.k],1.2)}else if(r.x)ex(f,r.x,1.5);txt=orig;
+  bub(f,txt);LOG.push(PT[f.pi].n+': '+txt+' ('+orig+')');CNT[orig]=(CNT[orig]||0)+1;if(LOG.length>60)LOG.shift()}
+const PLK={pl_slow:1,bump_player:1,poke_hit:1,poke_ask:1,prank_hit:1,prank_sorry:1,jumpmimic:1,gazepl:1,followpl:1,wp1:1,wp2:1,attn:1,hug:1,startle:1,nap:1,wakeup:1,tiru:1,kejarpl:1,tg_kena:1,tg_caught:1,tg_win:1,tt_ask:1,tt_ok:1,tt_no:1};
+function S(f,k,pri){const a=PH[k];if(a)say(f,a[Math.floor(Math.random()*a.length)],pri,PLK[k]?PL:null)}
+// ===== DIALOG: bola kecil saling membalas ucapan =====
+const DQ=[],pk=a=>a[Math.floor(Math.random()*a.length)],busy=f=>NOW()<(f.L.tk||0);
+// lines: [[bola,teks,jeda_detik,ekspresi?],...]; fn dijalankan setelah dialog selesai
+function talk(lines,fn){const t0=NOW();let end=0;
+  lines.forEach(([f,txt,dl,e,tt],i)=>{let to=tt||null;for(let j=i-1;!to&&j>=0;j--)if(lines[j][0]!==f)to=lines[j][0];for(let j=i+1;!to&&j<lines.length;j++)if(lines[j][0]!==f)to=lines[j][0];DQ.push({at:t0+dl,f,txt,e,to});if(dl>end)end=dl;f.L.tk=Math.max(f.L.tk||0,t0+dl+2.4)});
+  if(fn)DQ.push({at:t0+end+2.2,fn})}
+function dlgTick(){if(!DQ.length)return;const t=NOW();
+  for(let i=0;i<DQ.length;){const q=DQ[i];if(q.at>t){i++;continue}DQ.splice(i,1);
+    if(q.fn){q.fn();continue}
+    if(!q.ty&&q.f.L.sy&&/[A-Za-z]{3}/.test(q.txt)&&!((q.e==='wow'||q.e==='yell')&&q.txt.length<=10)&&Math.hypot(pos.x-q.f.x,pos.z-q.f.z)<=26){
+      const dd=clamp(.55+q.txt.length*.03,.8,1.6);typing(q.f,dd,q.e==='angry');q.ty=1;q.at=t+dd;DQ.push(q);continue}
+    if(q.to===PL||(QF&&q.f===QF))chatAdd(nm(q.f),q.txt,q.f);
+    say(q.f,q.txt,1,q.to);if(q.e)ex(q.f,q.e,1.4)}}
+// balasan saat bola lain bereaksi pada tingkah temannya
+const RP={laugh:['Hehe, lucu kan?','Ih, jangan ketawain aku!','Ayo ikut dong!'],watch:['Lihat ya, keren kan?','Jangan lihatin terus, malu!'],inspect:['Lagi main nih, mau ikut?','Aku lagi seru-seruan!'],
+ flee:['Eh, jangan takut! Aku baik kok','Kok lari? Aku nggak gigit!'],scold:['Ih, galak banget!','Maaf, berisik ya?'],cheer:['Makasih udah semangatin!','Lihat aku ya!'],
+ play:['Ayo gabung sini!','Asyik, makin rame!'],join:['Ayo bareng-bareng!','Asyik, ada teman!']};
+function react(f,w,rt){
+  if(rt==='part'){S(f,'part',1);return}
+  if(Math.random()>.55)return;const ph=PH[rt];if(!ph)return;
+  if(w&&w.L&&w!==f&&RP[rt]&&!busy(f)&&!busy(w)){
+    let rp=pk(RP[rt]),e=(rt==='laugh'||rt==='join'||rt==='play'||rt==='cheer')?'happy':null;
+    if(w.pi===2&&(rt==='laugh'||rt==='watch'||rt==='inspect')){rp=pk(['Heh! Apa lihat-lihat?','Jangan ganggu aku!']);e='angry'}
+    else if(w.pi===1&&(rt==='watch'||rt==='inspect')){rp=pk(['Aduh, aku malu...','Jangan lihatin aku...']);e='hide'}
+    talk([[f,pk(ph),0],[w,rp,2.1,e]])}
+  else S(f,rt)}
+// pelerai: bola ketiga menenangkan dua bola yang berantem
+function mediate(m,a,b){
+  [[a,b],[b,a]].forEach(([x,y])=>{const r=M(x,y);r.a=Math.min(1,r.a+.3);r.g=0;r.f*=.3;x.L.E.anger*=.2;x.L.E.joy=Math.min(1,x.L.E.joy+.4);mark(x,'peace')});
+  M(m,a).a=Math.min(1,M(m,a).a+.15);M(m,b).a=Math.min(1,M(m,b).a+.15);
+  talk([[m,pk(['Udah, udah... kita kan teman!','Sudah-sudah, jangan berantem dong!']),0,'yell'],
+    [a,pk(['Tapi dia duluan yang mulai!','Dia nakal sih!']),2.1,'angry'],[b,pk(['Enggak! Dia yang nabrak aku!','Aku nggak salah kok!']),4.2,'angry'],
+    [m,pk(['Sama-sama salah. Baikan yuk!','Kita kan teman, masa berantem?']),6.3,'happy'],
+    [a,pk(['Iya deh... maaf ya','Iya... aku juga salah']),8.4,'sad'],[b,pk(['Aku juga maaf. Temenan lagi!','Maafin aku juga ya. Temenan!']),10.5,'happy'],
+    [m,pk(['Nah gitu dong, hore!','Asyik, temenan lagi!']),12.6,'happy']]);
+  setM(a,'chat',12,b);setM(b,'chat',12,a)}
+// disentuh pemain: tiap bola membalas sesuai sifat & kedekatan, teman sekitar ikut menyapa
+// ===== NGOBROL DENGAN PEMAIN: tanya jawab pintar, alasan yang jujur, dan marah/sedih kalau ditinggal =====
+const CN=['si Kuning','si Biru','si Koral','si Pink','si Hijau'],nm=o=>o.ai?(o.nm||'AI'):CN[o.pi%5];
+const PWHY=['Aku memang gampang senang, hehe','Aku memang pemalas dan penakut, hehe','Aku memang gampang kesal, tapi nggak jahat kok','Soalnya aku suka nari dan musik!','Aku penasaran sama semuanya!'];
+const PCH=[['Hehe, aku lagi seneng banget!','Cerita dong, kamu habis ngapain?','Main bareng yuk, seru deh!','Kamu lucu deh, hehe','Aku suka ngobrol sama kamu!'],
+ ['Hoaam... aku ngantuk, tapi aku dengerin kok','Jangan jauh-jauh ya, aku takut...','Pelan-pelan ya ngomongnya...','Aku mau bobo... tapi temenin ya','Kamu baik, aku nggak takut kalau sama kamu'],
+ ['Hmph, mau ngomong apa lagi?','Cepetan, aku nggak sabaran!','Jangan lama-lama ya ngobrolnya!','Hmm... kamu lumayan juga. Lumayan!','Awas, jangan bikin aku kesal'],
+ ['Tralala~ mau nari bareng?','Ngobrol sambil nari lebih asyik!','Satu, dua... ayo goyang!','Kamu punya gaya juga lho!','Dengerin musiknya nggak? Aku denger!'],
+ ['Eh, menurut kamu itu apa ya?','Kenapa kamu bulat? Aku juga bulat!','Aku penasaran, kamu dari mana?','Ceritain yang paling seru dong!','Ooh gitu... terus terus?']];
+const PRM=['Hei, kamu masih di sini?','Terus terus? Ada lagi?','Kok diam aja? Ayo ngobrol lagi!'],PRM2=['Hmph! Kok diam aja?','Cepetan ngomong, aku nggak sabar!'];
+const BYE=['Aku main dulu ya, dadah!','Aku bobo dulu ya... dadah','Udah ah, aku mau jalan-jalan!','Aku nari dulu ya, dadah!','Aku lihat-lihat dulu ya, dadah!'];
+const up=(f,k,v)=>{f.L.E[k]=clamp(f.L.E[k]+v,0,1)},adA=(m,v)=>{m.a=clamp(m.a+v,-1,1)},adG=(m,v)=>{m.g=clamp(m.g+v,0,1)};
+const gnews=()=>G.news.slice().reverse().find(n=>NOW()-n.t<150&&n.k==='fight');
+// alasan JUJUR dari keadaan nyata: marah/sedih/ngantuk/kesepian/bosan, ingatan tentang siapa yang nakal, dan kejadian terakhir
+function why(f){const L=f.L,E=L.E,N=L.N,t=NOW(),ev=k=>L.ev.some(e=>e.k===k&&t-e.t<90),mp=M(f,PL);
+  let bm=null,bg=.2;for(const o of fol){if(o===f)continue;const r=L.mem[o.id];if(r&&r.g>bg){bg=r.g;bm=o}}
+  if(E.anger>.3){
+    if(ev('left'))return 'Soalnya tadi kamu pergi pas aku lagi ngomong';
+    if(ev('bump'))return 'Soalnya tadi ada yang nabrak aku, sakit!';
+    if(ev('brawl')&&bm)return 'Aku masih kesal sama '+nm(bm)+', tadi kami berantem';
+    if(E.jealous>.3)return 'Aku iri, mereka main terus nggak ngajak aku';
+    if(mp.g>.25)return 'Kamu pernah nabrak atau colek aku, aku masih ingat';
+    if(bm)return 'Aku masih kesal sama '+nm(bm);
+    return 'Entah kenapa... aku lagi kesal aja, nggak tahu sebabnya'}
+  if(E.sad>.3){if(ev('brawl'))return 'Habis berantem tadi badanku sakit dan aku sedih';if(N.soc>.6)return 'Aku kesepian, belum ada yang ngajak main';return 'Aku sedih, tapi nggak tahu kenapa...'}
+  if(E.fear>.3)return 'Tadi ada yang bikin aku takut, jadi masih deg-degan';
+  if(E.sleepy>.5||L.en<.4)return 'Energiku tinggal sedikit, jadi ngantuk';
+  if(N.soc>.6)return 'Aku pengen punya teman main, makanya aku ngajak kamu ngobrol';
+  if(N.fun>.6||E.bored>.5)return 'Aku bosan, nggak ada yang seru';
+  if(E.joy>.4)return 'Aku lagi seneng! Tadi main seru';
+  return PWHY[f.pi%5]}
+function moodOf(f){const E=f.L.E;return E.anger>.3?'kesal':E.sad>.3?'sedih':E.fear>.3?'takut':E.sleepy>.5?'ngantuk':E.joy>.4?'senang':E.bored>.5?'bosan':'santai'}
+// bank pertanyaan: pilihan jawaban pemain -> balasan & efek (ingatan, emosi) sesuai sifat NPC
+const QB=[
+ {id:'kejar',w:f=>1,t:f=>'Kamu suka main kejar-kejaran?',why:f=>'Aku mau tahu permainan apa yang cocok buat kita',
+  o:[['Suka!','Asyik, kita sama dong! Nanti main ya!',(f,m)=>{up(f,'joy',.2);adA(m,.05)}],['Nggak',f=>f.L.T.energy>.6?'Yah... padahal seru lho. Yaudah, main yang lain aja':'Aku juga males lari-lari, hehe'],['Biasa aja','Oh, kamu santai ya. Nggak apa-apa kok']]},
+ {id:'takut',w:f=>1,t:f=>f.L.T.brave>.6?'Aku nggak takut apa-apa! Kamu takut nggak sama yang besar-besar?':'Kamu takut nggak sama yang besar-besar? Aku sih takut...',
+  why:f=>f.L.T.brave>.6?'Aku suka teman yang berani, jadi pengen tahu kamu':'Soalnya aku penakut, pengen cari teman yang berani',
+  o:[['Takut',f=>f.L.T.brave>.6?'Tenang, ada aku yang jagain kamu!':'Aku juga! Jadi kita senasib',(f,m)=>adA(m,.05)],
+   ['Nggak takut',f=>f.L.T.brave>.6?'Wah, kita sama-sama berani! Keren!':'Wah, kamu berani ya! Jagain aku dong...',(f,m)=>{adA(m,.08);up(f,'joy',.1)}],['Sedikit','Wajar kok, aku juga kadang gemetar']]},
+ {id:'senang',w:f=>1,t:f=>'Kamu lagi senang nggak hari ini?',why:f=>'Biar aku tahu kamu perlu dihibur atau nggak',
+  o:[['Senang','Asyik! Aku ikut senang!',f=>up(f,'joy',.2)],['Biasa aja','Yuk cari yang seru biar kamu senang!'],['Sedih','Cup cup... sini aku temenin',(f,m)=>{adA(m,.1);f.hrt=1.5}]]},
+ {id:'maaf',w:(f,m)=>m.g>.18?6:0,t:f=>'Tadi kamu nabrak atau colek aku, sengaja ya?',why:f=>'Soalnya aku masih ingat rasa sakitnya',
+  o:[['Nggak sengaja','Oh gitu... yaudah. Tapi lain kali hati-hati ya',(f,m)=>{m.g*=.5;f.L.E.anger*=.5}],
+   ['Maaf ya','Iya, aku maafin. Jangan diulang ya!',(f,m)=>{m.g*=.3;f.L.E.anger*=.3;adA(m,.1);f.hrt=1.5}],
+   ['Biarin!','Hmph! Kamu nakal! Aku kesal!',(f,m)=>{up(f,'anger',.35);adG(m,.1);adA(m,-.1);ex(f,'angry',1.5)}]]},
+ {id:'tari',w:f=>f.pi===3?2:.8,t:f=>'Kamu lebih suka nari atau tidur?',why:f=>'Aku pengen tahu kesukaanmu, biar kita bisa main yang cocok',
+  o:[['Nari',f=>f.pi===3?'Yeay, sama! Ayo nari bareng!':'Wah seru! Aku suka lihat orang nari',f=>up(f,'joy',.15)],['Tidur',f=>f.pi===1?'Sama! Bobo itu surga...':'Hehe, enak ya bobo'],['Dua-duanya','Serakah! Hehe, aku juga mau dua-duanya']]},
+ {id:'baik',w:f=>1,t:f=>'Menurutmu aku orangnya baik nggak?',why:f=>'Aku pengen tahu pendapatmu tentang aku',
+  o:[['Baik banget','Makasih! Kamu juga baik',(f,m)=>{adA(m,.1);up(f,'joy',.2);f.hrt=1.5}],['Biasa aja',f=>f.L.T.temper>.7?'Hmph... biasa aja? Yaudah deh':'Oh... aku akan jadi lebih baik lagi!'],
+   ['Kadang nakal',f=>f.L.T.temper>.7?['Heh! Enak aja!','...eh, mungkin iya sih']:'Hehe, iya kadang aku jail',f=>{if(f.L.T.temper>.7)up(f,'anger',.2)}]]},
+ {id:'teman',w:(f,m)=>f.L.N.soc>.55&&m.a<.5?3:0,t:f=>'Kamu mau jadi temanku?',why:f=>'Soalnya aku kesepian, pengen punya teman',
+  o:[['Mau!','Yeay! Kita teman sekarang! Janji ya!',(f,m)=>{adA(m,.25);up(f,'joy',.3);f.hrt=1.5;f.L.N.soc*=.5}],['Nanti ya','Oke, aku tunggu ya... jangan lupa'],['Udah teman kan','Iya ya! Hehe. Kamu teman terbaikku!',(f,m)=>adA(m,.1)]]},
+ {id:'gosip',w:f=>gnews()?3:0,t:f=>{const n=gnews();return n?'Kamu lihat nggak tadi '+nm(n.a)+' sama '+nm(n.b)+' berantem?':'Kamu lihat nggak tadi ada yang berantem?'},why:f=>'Aku masih kaget soal itu',
+  o:[['Lihat','Seram ya... jangan ditiru ya!'],['Nggak lihat','Mereka berantem lho! Semoga sudah baikan'],['Siapa yang salah?','Hmm... aku nggak tahu. Mungkin dua-duanya']]},
+ {id:'ngantuk',w:f=>f.L.E.sleepy>.5?3:0,t:f=>'Aku ngantuk... boleh aku bobo di dekatmu?',why:f=>'Energiku tinggal sedikit',
+  o:[['Boleh','Makasih... zzz',f=>{f.L.E.sleepy*=.7;ex(f,'yawn',1.5)}],['Jangan dulu','Yah... yaudah, aku tahan dulu',f=>up(f,'sad',.1)]]},
+ {id:'bulat',w:f=>f.pi===4?2:.4,t:f=>'Menurutmu kenapa kita bulat?',why:f=>'Aku penasaran sama semua hal',
+  o:[['Biar ngegelinding','Betul! Pintar!',f=>up(f,'joy',.15)],['Nggak tahu','Aku juga nggak tahu. Misteri ya!'],['Dari lahir','Hmm, masuk akal juga!']]}];
+// tombol jawaban cepat (chip) di layar
+const QR=document.createElement('div');QR.id='qr';document.body.appendChild(QR);let QF=null;
+const QT=document.createElement('div');QT.id='qt';QT.innerHTML='<input maxlength="60" placeholder="Ketik pesan... (mis. ikut aku, main yuk, maaf)"><button>Kirim</button>';document.body.appendChild(QT);
+const QI=QT.firstChild;function qtSend(){const c=QF&&QF.L.cs,v=QI.value.trim();if(!c||!v||NOW()<c.lock)return;QI.value='';chatAdd('Kamu',v,null);
+  if(window.WILL.aiOn()){const f=QF;c.n++;keep(f);c.lock=NOW()+25;QR.classList.add('lk');typing(f,8);
+    window.WILL.ai(f,v).then(r=>{if(!f.L.cs)return;const t=NOW();QR.classList.remove('lk');
+      if(!r){c.lock=0;qrPick(f,window.WILL.parse(v)||'huh',1);return}
+      c.lock=t+3.6;talk([[f,r.say,0,r.e,PL]]);
+      if(r.go){c.done=1;c.end=t+5;qrHide();DQ.push({at:t+1.8,fn:()=>{endS(f);r.go()}})}else if(r.act)r.act();qrDraw()});return}
+  qrPick(QF,window.WILL.parse(v)||'huh',1)}
+QT.lastChild.addEventListener('pointerdown',e=>{e.preventDefault();qtSend()});QI.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')qtSend()});QI.addEventListener('keyup',e=>e.stopPropagation());
+const CH=[],CL=document.createElement('div');CL.id='cl';document.body.appendChild(CL);
+const CB=document.createElement('button');CB.id='cb';CB.textContent='💬';document.body.appendChild(CB);let cPin=false,cTm=0;
+['pointerdown','touchstart'].forEach(t=>{CL.addEventListener(t,e=>e.stopPropagation(),{passive:true});CB.addEventListener(t,e=>e.stopPropagation(),{passive:true})});
+function chatShow(){CL.style.display=(cPin||NOW()<cTm)?'flex':'none';CL.style.pointerEvents=cPin?'auto':'none';CL.scrollTop=CL.scrollHeight}
+function chatAdd(who,txt,f){CH.push(1);const d=document.createElement('div');d.className='cm'+(f?'':' me');const w=document.createElement('b');w.textContent=who;const x=document.createElement('span');x.textContent=txt;d.appendChild(w);d.appendChild(x);if(f)d.style.borderColor=(f.aic||BODY[f.pi%5]);CL.appendChild(d);while(CL.children.length>80)CL.removeChild(CL.firstChild);cTm=NOW()+10;chatShow();setTimeout(chatShow,10200)}
+CB.addEventListener('click',()=>{cPin=!cPin;CB.style.background=cPin?'#7bd88f':'#fff';chatShow()});
+function qrHide(){QF=null;QR.style.display='none';QR.innerHTML='';QT.style.display='none'}
+function chipsFor(f){const L=f.L,cs=L.cs,m=M(f,PL);if(!cs)return[];
+  if(cs.q)return cs.q.o.map((o,i)=>['q'+i,o[0]]).concat([['why','Kenapa tanya itu?']]);
+  const c=[['feel','Kamu kenapa?'],['why','Kenapa gitu?'],['ask','Tanya aku dong'],['friend','Siapa temanmu?']];
+  if(fol.some(o=>o!==f&&(L.mem[o.id]||{g:0}).g>.15))c.push(['bad','Ada yang nakal?']);
+  c.push(['play','Main yuk!'],['ikut','Ikut aku yuk!'],['sini','Ke sini dong'],['ajakteman','Ajak temanmu']);if(f.mode==='ikut')c.push(['stop','Berhenti ikut']);if(L.lr&&NOW()-L.lr.t<180)c.push(['whyleft','Tadi kenapa pergi?']);if(m.g>.1||L.E.anger>.25)c.push(['sorry','Maaf ya']);c.push(['bye','Dadah']);return c}
+function qrDraw(){const f=QF;if(!f||!f.L.cs){qrHide();return}
+  QR.innerHTML='';QR.style.display='flex';QT.style.display='flex';
+  const h=document.createElement('div');h.className='qh';const sp=document.createElement('span');sp.className='qn';sp.textContent='Ngobrol dengan '+nm(f);sp.style.borderColor=(f.aic||BODY[f.pi%5]);h.appendChild(sp);QR.appendChild(h);
+  for(const [k,lb] of chipsFor(f)){const b=document.createElement('button');b.textContent=lb;b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();qrPick(f,k)});QR.appendChild(b)}}
+function endS(f){f.L.cs=null;if(QF===f)qrHide();if(f.mode==='talkpl'){f.mode=null;f.mo=null;f.idl=.5}}
+function keep(f){const cs=f.L.cs,t=NOW();cs.end=t+18;cs.np=t+rr(9,12);cs.pr=0;
+  if(f.mode==='talkpl')f.mt=19.5;else if(!f.mode||(LOWM[f.mode]&&!f.bf))setM(f,'talkpl',19.5,PL)}
+function talkStart(f){const L=f.L,t=NOW();if(f.mode&&f.mode!=='ikut'&&!(LOWM[f.mode]&&!f.bf))return;
+  fol.forEach(o=>{if(o!==f&&o.L.cs)endS(o)});
+  if(f.mode!=='ikut')setM(f,'talkpl',19.5,PL);L.cs={n:1,end:t+18,np:t+rr(9,12),pr:0,lk:-1,lq:-1,arm:Math.hypot(pos.x-f.x,pos.z-f.z)<4.5?1:0,q:null,lw:'',lock:t+1.5,done:0};QF=f;qrDraw()}
+// NPC mengajukan pertanyaan yang dipilih dari keadaannya (kebutuhan, ingatan, kejadian terakhir)
+function ask(f){const L=f.L,cs=L.cs,m=M(f,PL),t=NOW();
+  const ws=QB.map((q,i)=>i===cs.lq?0:q.w(f,m));let tot=0;ws.forEach(w=>tot+=w);let x=Math.random()*tot,k=0;for(;k<QB.length-1;k++){x-=ws[k];if(x<=0)break}
+  const q=QB[k];cs.q=q;cs.lq=k;cs.lw=q.why(f);cs.lock=t+2.6;QR.classList.add('lk');talk([[f,q.t(f),0,null,PL]]);qrDraw()}
+function talkOn(f){const L=f.L,cs=L.cs,E=L.E,mp=M(f,PL);cs.n++;keep(f);QF=f;
+  if(cs.q){talk([[f,pk(L.T.temper>.7?['Jawab dulu dong pertanyaanku!','Hei, aku nanya lho! Jawab!']:['Jawab dulu ya pertanyaanku...','Hehe, kamu belum jawab lho']),0,null,PL]]);qrDraw();return}
+  mp.a=Math.min(1,mp.a+.04);E.joy=Math.min(1,E.joy+.06);
+  if(Math.random()<.45){ask(f);return}
+  const pool=PCH[f.pi];let k=0;for(let i=0;i<6;i++){k=Math.floor(Math.random()*pool.length);if(k!==cs.lk)break}cs.lk=k;cs.lw='';
+  talk([[f,pool[k],0,Math.random()<.5?'happy':null,PL]]);qrDraw()}
+// jawaban NPC untuk tiap tombol: selalu dari keadaan nyata, dan "Kenapa gitu?" menjelaskan alasannya
+function answer(f,k){const L=f.L,cs=L.cs,E=L.E,T=L.T,m=M(f,PL),t=NOW();let ln=[],e=null;
+  if(k[0]==='q'){const o=cs.q.o[+k.slice(1)];cs.q=null;ln=[].concat(typeof o[1]==='function'?o[1](f):o[1]);if(o[2])o[2](f,m);cs.lw='Soalnya kamu jawab "'+o[0]+'" tadi, jadi aku bilang begitu';e=E.anger>.4?'angry':'happy'}
+  else if(k==='why'){ln=[cs.lw||why(f)];cs.lw='';e=E.anger>.4?'angry':null}
+  else if(k==='feel'){const md=moodOf(f);ln=[md==='santai'?'Aku lagi santai, hehe':'Aku lagi '+md+'...',why(f)];e=md==='kesal'?'angry':md==='sedih'?'sad':md==='senang'?'happy':null}
+  else if(k==='ask'){ask(f);return}
+  else if(k==='friend'){let b=null,ba=.15;for(const o of fol){if(o===f)continue;const r=L.mem[o.id];if(r&&r.a>ba){ba=r.a;b=o}}
+    if(b){ln=['Temanku yang paling dekat '+nm(b)+'!','Soalnya kami sering main bareng dan jarang berantem'];if(m.a>.3)ln.push('Kamu juga temanku, lho!');e='happy';cs.lw='Soalnya kami sering main bareng'}
+    else{ln=['Belum ada yang dekat banget...'];cs.lw='Soalnya aku belum punya teman dekat';if(m.a>.3)ln.push('Tapi kamu temanku, lho!');else{ln.push('Kamu mau jadi temanku?');cs.q=QB.find(q=>q.id==='teman')}}}
+  else if(k==='bad'){let b=null,bg=.15;for(const o of fol){if(o===f)continue;const r=L.mem[o.id];if(r&&r.g>bg){bg=r.g;b=o}}
+    const bf=L.ev.some(x=>x.k==='brawl'&&t-x.t<90);
+    if(b){ln=[nm(b)+' kadang nakal. '+(bf?'Tadi kami berantem':'Dia pernah nabrak aku')];cs.lw=bf?'Soalnya tadi kami berantem':'Soalnya dia pernah nabrak aku';if(m.g>.25)ln.push('Kamu juga pernah nabrak aku, lho!')}
+    else if(m.g>.25){ln=['Hmm... yang nakal itu kamu, kamu pernah nabrak aku!'];cs.lw='Soalnya kamu pernah nabrak aku'}
+    else ln=['Nggak ada, semua baik kok!']}
+  else if(k==='play'){const yes=Math.random()<clamp(.7-E.sleepy*.5-T.lazy*.3-m.g-E.anger*.6+Math.max(0,m.a)*.4+E.joy*.2,.05,.95);
+    if(yes){const gm=pk(['kejarpl','tiru','tantang']);ln=[{kejarpl:'Ayo! Aku kejar kamu ya, lari!',tiru:'Ayo! Aku tiru gerakan kamu ya!',tantang:'Ayo! Lomba loncat sama aku!'}[gm]];e='happy';up(f,'joy',.2);cs.done=1;cs.end=t+4;qrHide();
+      DQ.push({at:t+2.6,fn:()=>{endS(f);start(f,gm);window.WILL.commit(f,gm,26)}})}
+    else{ln=[E.sleepy>.5?'Aku ngantuk, nanti ya...':E.anger>.3?'Aku lagi kesal, nggak mau main!':m.g>.2?'Kamu nakal tadi, aku nggak mau main dulu':T.lazy>.6?'Aku males... nanti aja ya':E.fear>.3?'Aku masih takut... nanti ya':'Hmm... nanti ya, aku lagi nggak mood'];if(E.anger>.3)e='angry'}}
+  else if(k==='sorry'){if(m.g>.12||E.anger>.2){
+      if(Math.random()<clamp(.85-T.temper*.5-m.g*.4,.2,.95)){ln=[pk(['Iya, aku maafin. Jangan diulang ya!','Yaudah, aku nggak marah lagi. Temenan ya?'])];m.g*=.3;E.anger*=.3;adA(m,.1);e='happy';cs.lw='Soalnya kamu udah minta maaf dengan baik'}
+      else{ln=['Hmph... belum. Aku masih kesal'];m.g*=.8;E.anger*=.8;e='angry';cs.lw=why(f)}}
+    else ln=['Maaf buat apa? Aku nggak marah kok']}
+  else if(k==='stop'||k==='thanks'||k==='insult'||k==='whyleft'||k==='huh'){const r=window.WILL.reply(f,k);ln=r.ln;e=r.e;if(r.go)r.go()}
+  else if(k==='ikut'||k==='sini'||k==='ajakteman'){const r=window.WILL.invite(f,k);ln=r.ln;e=r.e;cs.done=1;cs.end=t+5;qrHide();DQ.push({at:t+1.8,fn:()=>{endS(f);r.go()}})}
+  else if(k==='bye'){ln=[pk([BYE[f.pi%5]])];e='happy';cs.done=1;cs.end=t+3;qrHide()}
+  cs.lock=t+ln.length*2.4+1.2;QR.classList.add('lk');
+  talk(ln.map((x,i)=>[f,x,i*2.4,i===0?e:null,PL]));qrDraw()}
+function qrPick(f,k,nl){const cs=f.L.cs,t=NOW();if(!cs||t<cs.lock)return;if(!nl){const c=chipsFor(f).find(x=>x[0]===k);if(c)chatAdd('Kamu',c[1],null)}cs.n++;keep(f);QF=f;answer(f,k)}
+// pemain pergi pas lagi ngobrol: tukang berantem marah & bilang "nakal"; yang lain cuma sedih
+function leftBehind(f,cs){const L=f.L,E=L.E,Tr=L.T,t=NOW(),m=M(f,PL);
+  if(!rdy(L,'leftang',t))return;
+  const ft=f.pi===2||(L.fc||0)>=2||Tr.temper>.6;
+  if(!ft&&cs.n<2)return;
+  L.cd.leftang=t+25;f.gz=PL;f.gzT=3;
+  if(ft){E.anger=Math.min(1,E.anger+.65);m.g=Math.min(1,m.g+.3);m.a=Math.max(-1,m.a-.12);mark(f,'left');ex(f,'angry',2.5);fhop(f);
+    talk([[f,cs.q?pk(['Aku lagi nanya, kok malah pergi? Nggak sopan!','Hei! Pertanyaanku belum dijawab!']):pk(['Heh! Mau ke mana? Aku belum selesai ngomong!','Hei! Jangan pergi dulu, aku lagi ngomong!']),0,'angry',PL],
+      [f,pk(['Kamu nakal! Ditinggal pas ngobrol!','Dasar nakal! Nggak sopan pergi gitu aja!','Kamu nakal banget sih! Awas ya!']),2.4,'angry',PL]])}
+  else{E.sad=Math.min(1,E.sad+.3);E.anger=Math.min(1,E.anger+.15*Tr.temper);m.a=Math.max(-1,m.a-.05);ex(f,'sad',2);
+    talk([[f,cs.q?'Yah... aku nanya belum dijawab, malah pergi':pk(['Yah... kok pergi? Aku belum selesai ngomong','Eh, mau ke mana? Aku kan lagi ngobrol...','Hiks... ditinggal...']),0,'sad',PL]])}}
+function talkWatch(dt){const t=NOW();
+  if(QF&&QF.L.cs&&QR.classList.contains('lk')&&t>QF.L.cs.lock)QR.classList.remove('lk');
+  for(const f of fol){const L=f.L,cs=L.cs;if(!cs)continue;
+    const d=Math.hypot(pos.x-f.x,pos.z-f.z);
+    if(f.mode&&f.mode!=='talkpl'&&f.mode!=='ikut'){endS(f);continue}
+    if(!cs.arm){if(d<4.5)cs.arm=1;else if(t>cs.end||d>16)endS(f);continue}
+    if(t>cs.end){endS(f);f.idl=rr(.3,1);if(cs.n>=2&&d<10&&!cs.done)talk([[f,pk([BYE[f.pi%5]]),0,'happy',PL]]);L.cd.chat=0;G.ct=Math.min(G.ct,3);continue}
+    if(d>9.5){endS(f);if(!cs.done)leftBehind(f,cs);continue}
+    if(!f.mode&&d<7)setM(f,'talkpl',cs.end-t+1.5,PL);
+    if(t>cs.np&&cs.pr<2&&!busy(f)&&!cs.q&&t>cs.lock){cs.pr++;cs.np=t+rr(9,12);if(cs.pr===1&&Math.random()<.6)ask(f);else talk([[f,pk(f.pi===2?PRM2:PRM),0,null,PL]])}}}
+function tap(f){
+  const L=f.L,Tr=L.T,E=L.E,mp=M(f,PL);mp.a=Math.min(1,mp.a+.1);f.gz=PL;f.gzT=2;f.jd=.01;f.sqv=-3;ping(f);
+  if(f.mode==='sleep'&&!f.fk){f.mode=null;f.mo=null;f.nz=0;f.idl=1;
+    talk([[f,'Hah!',0,'wow',PL],[f,Tr.temper>.7?'Hmph! Kesal dibangunin!':'Eh kamu, temenin ya',2.1,Tr.temper>.7?'angry':'happy',PL]]);return}
+  if(E.anger>.5||(Tr.temper>.8&&Math.random()<.5)){mp.g=Math.min(1,mp.g+.05);talk([[f,'Hmph! Jangan colek!',0,'angry',PL],[f,why(f),2.4,'angry',PL]]);endS(f)}
+  else if(L.cs&&NOW()<L.cs.end)talkOn(f);
+  else if(Tr.brave<.3&&Math.random()<.6){talk([[f,'Waa kaget!',0,'wow',PL]]);talkStart(f)}
+  else if(mp.a>.25||Tr.social>.75){talk([[f,'Hai teman!',0,'happy',PL]]);talkStart(f)}
+  else{talk([[f,'Hm? Ada apa?',0,'wow',PL],[f,'Main yuk!',2.1,'happy',PL]]);talkStart(f)}
+  fol.forEach(o=>{if(o!==f&&!busy(o)&&!o.mode&&Math.hypot(o.x-f.x,o.z-f.z)<7&&Math.random()<.6){
+    const m=M(o,f);talk([[o,m.a>.2?'Kamu temanku!':'Ada apa tuh?',rr(.8,1.6),'wow',f]])}})}
+// obrolan santai antar teman (tergantung hubungan, sifat & ingatan)
+function chat(){
+  if(fol.some(f=>f.mode==='brawl'||f.mode==='part'))return;
+  const t=NOW(),ok=f=>(!f.mode||f.mode==='stroll'||f.mode==='curious')&&!(f.hu>0)&&!busy(f)&&rdy(f.L,'chat',t)&&Math.hypot(f.x-pos.x,f.z-pos.z)<22;
+  const c=fol.filter(ok);if(c.length<2)return;
+  // yang sedang sedih lebih dulu dicari teman
+  const a=c.find(f=>f.L.E.sad>.4)||c[Math.floor(Math.random()*c.length)];let b=null,bs=-9;
+  for(const o of c){if(o===a)continue;const d=Math.hypot(o.x-a.x,o.z-a.z);if(d>10)continue;const m=a.L.mem[o.id],s=(m?m.a-m.g:0)-d*.05+Math.random()*.6;if(s>bs){bs=s;b=o}}
+  if(!b)return;
+  const ma=M(a,b),mb=M(b,a),gr=Math.max(ma.g,mb.g)>.15||Math.min(ma.a,mb.a)<-.2,A=a.L,B=b.L,pn=Math.hypot(pos.x-a.x,pos.z-a.z)<14,em=x=>BE[x.pi%5];
+  const bond=()=>[[a,b],[b,a]].forEach(([x,y])=>{M(x,y).a=Math.min(1,M(x,y).a+.1);x.hrt=1.5});
+  // berita terbaru yang diketahui A tapi belum diketahui B -> digosipkan
+  const nw=G.news.find(n=>t-n.t<120&&n.know.includes(a)&&!n.know.includes(b)&&n.a!==b&&n.b!==b);
+  // ajakan main: jawaban B tergantung kondisi (ngantuk, malas, hubungan, suasana hati)
+  const rs=M(b,a),yes=Math.random()<clamp(.75-B.E.sleepy*.5-B.T.lazy*.35-rs.g+Math.max(0,rs.a)*.4+B.E.joy*.2,.1,.95),
+    gm=pk(['chase','dance','zoom']),alt=fol.find(o=>o!==a&&o!==b&&!o.mode&&!(o.hu>0)),
+    sadO=A.E.sad>=B.E.sad?a:b,hel=sadO===a?b:a;
+  const SC=[
+   ['ajak',1.3,[[a,'👋'],[b,'👋😊'],[a,'🎮❓']].concat(yes?[[b,'😄👍','happy'],[a,'🥳','yell']]:[[b,B.E.sleepy>.5?'😴🙅':'🙅😅'],[a,'😢','sad'],[b,'🙏🥺']]),
+     yes?null:()=>{A.E.sad=Math.min(1,A.E.sad+.3);if(alt&&!a.mode){setM(a,'seek',rr(5,8),alt);ex(a,'sad',.8)}},
+     yes?(gm==='zoom'?[[a,'zoom'],[b,'zoom']]:[[a,gm,b]]):null],
+   ['hibur',(A.E.sad>.35||B.E.sad>.35)?5:0,[[sadO,'😢'],[hel,'🤗❓'],[sadO,'🥲'],[hel,'🤝💕','happy']],()=>{sadO.L.E.sad*=.3;sadO.L.E.joy=Math.min(1,sadO.L.E.joy+.3);bond()}],
+   ['gosip',nw?3:0,nw?(nw.k==='fight'?[[a,'😱'+em(nw.a)+'⚔️'+em(nw.b)],[b,'😲❓'],[a,em(nw.a)+'😠'],[b,'😟'+em(nw.b)]]:[[a,'😵🔴💥'+em(nw.a)],[b,'😲❓'],[a,'⚠️🔴'],[b,'😟']]):[],
+     nw?()=>{nw.know.push(b);
+       if(nw.k==='fight'){M(b,nw.a).g=Math.min(1,M(b,nw.a).g+.15);M(b,nw.b).a=Math.min(1,M(b,nw.b).a+.1);if(!b.mode&&nw.b!==b){setM(b,'seek',rr(5,8),nw.b);ex(b,'sad',.8)}}
+       else{const p=M(b,PL);p.h=(p.h||0)+1;p.g=Math.min(1,p.g+.1)}
+       B.E.fear=Math.min(1,B.E.fear+.2*(1-B.T.brave))}:null],
+   ['sleepy',(A.E.sleepy+B.E.sleepy)*2+B.T.lazy,[[a,'Kamu kok diam aja?'],[b,'Aku ngantuk...','sad'],[a,'Istirahat dulu yuk, aku temenin'],[b,'Makasih ya, kamu baik','happy']]],
+   ['teman',1.2,[[a,'Kamu teman terbaikku lho!'],[b,'Kamu juga! Kita kan teman','happy'],[a,'Temenan selamanya ya!','happy'],[b,'Janji!','yell']],bond],
+   ['lomba',.8+A.T.energy,[[a,'Ayo lomba lari!','yell'],[b,'Ayo! Siapa cepat dia menang!','yell'],[a,'Satu, dua, tiga... LARI!','yell']],null,[[a,'zoom'],[b,'zoom']]],
+   ['nari',.3+(A.T.dance+B.T.dance)*1.2,[[a,'Aku pengen nari nih!'],[b,'Ayo nari bareng!','happy'],[a,'Satu, dua, tiga!','yell']],null,[[a,'dance',b]]],
+   ['lucu',.9,[[a,'Tahu nggak, kenapa kita bulat?'],[b,'Kenapa?','wow'],[a,'Biar gampang ngegelinding!','happy'],[b,'Hahaha, lucu banget!','happy']],()=>{fhop(a);fhop(b)}],
+   ['cilukba',.7+B.T.curio*.5,[[a,'Main cilukba yuk!'],[b,'Boleh! Kamu yang ngumpet','happy'],[a,'Oke! Hitung sampai tiga ya']],null,[[a,'peek',b]]],
+   ['bolabesar',pn?1.1:0,[[a,'Eh, lihat bola merah yang besar itu'],[b,'Iya! Besar banget ya','wow'],[a,'Dia baik nggak ya?'],[b,'Baik kok, dia teman kita','happy']]],
+   ['baikan',gr?6:0,[[a,'Hei... masih marah sama aku?','sad'],[b,'Udah nggak kok'],[a,'Maaf ya soal tadi'],[b,'Iya, kita kan teman','happy']],()=>{[[a,b],[b,a]].forEach(([x,y])=>{const m=M(x,y);m.g*=.2;m.a=Math.min(1,m.a+.25);x.L.E.anger*=.3;x.hrt=1.5})}],
+   ['capek',(A.T.energy>.6&&B.T.lazy>.5)?2:0,[[a,'Ayo main!','yell'],[b,'Aku capek...','sad'],[a,'Sebentar aja, yuk!'],[b,'Yaudah deh, sebentar','happy']],null,[[a,'zoom'],[b,'hops']]],
+   ['takut',B.T.brave<.35?1.5:0,[[a,'Kamu kenapa gemetar?'],[b,'Aku takut sama yang besar-besar','sad'],[a,'Tenang, ada aku di sini'],[b,'Makasih, kamu berani ya','happy']]],
+   ['penasaran',.5+A.T.curio,[[a,'Itu apa ya di sana?','wow'],[b,'Entah... yuk kita lihat!'],[a,'Ayo, jangan takut ya'],[b,'Iya, kan ada kamu','happy']],null,[[a,'curious'],[b,'curious']]]];
+  // hindari topik yang sama berulang (global & per pasangan)
+  let tot=0;const W=SC.map(q=>{let w=q[0]===G.lc?0:q[1];if(ma.lt===q[0])w*=.3;tot+=w;return w});
+  let x=Math.random()*tot,k=0;for(;k<SC.length-1;k++){x-=W[k];if(x<=0)break}
+  const [nm,,l0,fx,go]=SC[k];if(!l0.length)return;G.lc=nm;ma.lt=mb.lt=nm;
+  const lines=l0.map(([f,txt,e],i)=>[f,txt,i*2.2,e]);
+  // bola ketiga di dekat situ bisa ikut nimbrung
+  const jn=Math.random()<.4?c.find(o=>o!==a&&o!==b&&!busy(o)&&!o.mode&&Math.hypot(o.x-a.x,o.z-a.z)<7):null;
+  if(jn){const n=lines.length;lines.push([jn,'🙋✨',n*2.2,'happy'],[b,'🤗👍',(n+1)*2.2,'happy']);M(jn,a).a=Math.min(1,M(jn,a).a+.08);jn.hrt=1.5}
+  const dur=(lines.length-1)*2.2;
+  setM(a,'chat',dur+1.5,b);setM(b,'chat',dur+1.5,a);A.cd.chat=t+rr(20,35);B.cd.chat=t+rr(20,35);
+  if(jn){setM(jn,'chat',dur-1,a);jn.L.cd.chat=t+rr(20,35)}
+  talk(lines,()=>{if(fx)fx();(go||[]).forEach(([f,m,tg])=>{if(!f.mode&&!(f.hu>0)){f.force=m;f.pt=tg||null;f.idl=.1}})})}
+// alasan dipilih dari keadaan nyata: ingatan, emosi, kebutuhan. Bila marah tanpa sebab: jujur bilang tidak tahu.
+function reasonSay(f,m){const L=f.L,E=L.E;if(Math.random()>.5)return;let k=null;
+  if(m==='sleep')k=(E.sleepy>.5||L.en<.4)?'sleep_tired':'sleep_ok';
+  else if(ANG[m]){const rb=L.ev.some(e=>e.k==='bump'&&NOW()-e.t<40);k=rb?'ang_bump':E.jealous>.3?'ang_jeal':E.anger>.3?'ang_on':'ang_why'}
+  else if(PH[m]&&(Math.random()<.6||!(FUNM[m]||SOCM[m]||EXPM[m])))k=m;
+  else if(FUNM[m])k=E.bored>.4?'fun_bored':L.N.fun>.6?'fun_need':'fun_joy';
+  else if(SOCM[m])k=L.N.soc>.6?'soc_need':'soc';
+  else if(EXPM[m])k=E.curio>.5?'exp_curio':'exp';
+  if(k)S(f,k)}
+function bubble(f,dt){const L=f.L;if(!L.sy)return;
+  if(L.typT>0){L.typT-=dt;L.sayT=Math.max(L.sayT,.6);L.typA-=dt;if(L.typA<=0){L.typA=.05;drawTyp(L)}}
+  if(L.sayT<=0){if(L.sy.visible)L.sy.visible=false;return}
+  L.sayT-=dt;const w=Math.max(.9,dist*.27),pp=L.pop>0?(L.pop-=dt,1-.3*Math.max(0,L.pop)/.16):1;L.sy.visible=true;L.sy.scale.set(w*pp,w/3.2*pp,1);
+  L.sy.position.set(f.x,f.h+RF*2+.55+w*.2,f.z);L.sy.material.opacity=Math.min(1,L.sayT*3)}
+
+function M(f,o){const k=o.pl?'P':o.id,L=f.L;return L.mem[k]||(L.mem[k]={a:0,g:0,f:0,t:0})}
+function mk(f){
+  const a=BASE[f.pi],b=BASE[Math.floor(Math.random()*BASE.length)],w=rr(.12,.35),T={};
+  for(const k in a)T[k]=clamp(a[k]*(1-w)+b[k]*w+rr(-.08,.08),0,1);
+  const E={};EK.forEach(k=>E[k]=0);E.bored=rr(0,.3);
+  // mem: ingatan hubungan (maks 5 entri: 4 bola + pemain) | pl: tempat favorit (maks 3) | ev: kejadian terakhir (maks 6)
+  return{T,E,mem:{},pl:[],ev:[],cd:{},en:rr(.7,1),sd:rr(0,.3),gp:null,avoid:null,avT:0,
+    sy:null,sayT:0,sayCd:0,txt:'',care:0,nd:99,nap:0,N:{soc:rr(.2,.5),fun:rr(.2,.5),exp:rr(.2,.5)},pref:{},hist:[],nb:0,cur:null,fr:null}}
+fol.forEach((f,i)=>{f.id=i;f.L=mk(f);f.force=null;f.pt=null;const sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,fog:false}));sp.visible=false;scene.add(sp);f.L.sy=sp});
+
+const rdy=(L,k,t)=>t>=(L.cd[k]||0);
+const near0=f=>{let m=99;for(const o of fol)if(o!==f){const d=Math.hypot(o.x-f.x,o.z-f.z);if(d<m)m=d}return m};
+function mark(f,k){const L=f.L;L.ev.push({k,t:NOW()});if(L.ev.length>6)L.ev.shift()}
+function intr(f){if(LOWM[f.mode]&&!f.bf){f.mode=null;f.mo=null;f.idl=.25}}
+function rel(f,o){const m=f.L.mem[o.pl?'P':o.id];if(!m)return'tidak akrab';
+  if(m.f>.5)return'takut';if(m.a>.7)return'sahabat';if(m.a>.35)return'teman';if(m.g>.5&&m.a<.1)return'rival';if(m.a<-.3)return'tidak suka';return'tidak akrab'}
+
+// ---- pemilihan target berdasarkan hubungan sosial ----
+function buddyL(f,m){
+  if(f.pt&&f.pt!==f){const o=f.pt;f.pt=null;return o}
+  const L=f.L,hos=HM[m],fr=FRM[m];let tot=0;
+  const ws=fol.map(o=>{if(o===f)return 0;const r=L.mem[o.id]||{a:0,g:0,f:0};let v=1;
+    if(hos)v=.3+r.g*2+Math.max(0,-r.a)+(L.E.jealous>.4?Math.max(0,r.a):0)-(r.f>.5?.5:0);
+    else if(fr)v=.4+Math.max(0,r.a)*3-r.g;
+    v=Math.max(.05,v);tot+=v;return v});
+  let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0&&ws[i]>0)return fol[i]}
+  return B0(f)}
+function fpick(f,list){
+  const L=f.L;let tot=0;
+  const ws=list.map(o=>{const r=L.mem[o.id]||{a:0,g:0,f:0};const v=Math.max(.05,.3+r.g*2+Math.max(0,-r.a)+(L.E.jealous>.4?Math.max(0,r.a):0)-(r.f>.5?.5:0));tot+=v;return v});
+  let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0)return list[i]}
+  return list[0]}
+
+// ---- utility AI: bobot keputusan dari kepribadian + emosi + energi + cooldown ----
+function weights(f){
+  const L=f.L,Tr=L.T,E=L.E,t=NOW(),W={},dpl=Math.hypot(pos.x-f.x,pos.z-f.z),mp=L.mem.P||{a:0,g:0,f:0};
+  let crowd=0;for(const o of fol)if(o!==f&&isWeird(o))crowd++;
+  for(const k in f.w){let v=f.w[k];
+    if(k==='sleep')v*=(.3+E.sleepy*3+Tr.lazy*.8)*(L.en>.75?.3:1)*(crowd>1&&Tr.lazy>.6?1.5:1);
+    else if(ANG[k])v*=Math.max(.15,.3+E.anger*3+Tr.temper*.9+E.jealous*2-E.fear*1.2)*(k==='brawl'?.4:1);
+    else if(k==='curious'||k==='stroll'||k==='peek')v*=.6+E.curio*2+E.bored*1.5+Tr.curio*.6;
+    else if(k==='hug'||k==='bow')v*=.5+E.shy*1.5+Math.max(0,mp.a)*2;
+    else if(FRW[k])v*=Math.max(.2,.5+E.joy*1.5+E.excite*1.5+Tr.energy*.8-E.sad*.5-E.sleepy);
+    if(k==='brawl')v*=Math.max(.2,1-L.nb*.3);
+    if(SOCM[k])v*=.7+L.N.soc*1.2;if(FUNM[k])v*=.7+L.N.fun*1.2;if(EXPM[k])v*=.7+L.N.exp*1.2;
+    v*=(L.pref[k]||1)*(L.hist.includes(k)?.45:1);
+    W[k]=t<(L.cd[k]||0)?0:Math.max(0,v)}
+  const ab=(k,v)=>{if(t<(L.cd[k]||0)||!(v>0))return;W[k]=v};
+  ab('backwalk',.45*(.6+E.bored+Tr.energy*.5));
+  ab('shadow',.4*(.5+Tr.energy+E.excite));
+  ab('freeze',crowd>=2?.8:.15);
+  ab('fakesleep',.35*(.5+Tr.lazy+Tr.dance*.3));
+  ab('gazepl',(.15+Tr.curio*.3+Math.max(0,mp.a)*.5)*(.6+E.bored)*(dpl<14?1:.2));
+  ab('followpl',(.15+Tr.energy*.4+Math.max(0,mp.a)*.5)*(dpl<14?1:.1));
+  ab('hidebehind',(E.fear+E.shy*.8+(1-Tr.brave)*.25)*(dpl<9?1:.5));
+  ab('dash',.5*(.4+Tr.energy+E.excite));
+  if(!called&&dpl<14){const pa=Math.max(0,mp.a);ab('tiru',(.25+Tr.social*.5+Tr.energy*.3+pa*.5)*(G.ps>1?1.6:.6));ab('kejarpl',.2+Tr.energy*.6+Tr.brave*.3+pa*.4-E.fear*.4);ab('tantang',.2+Tr.dance*.4+Tr.social*.3+pa*.4)}
+  if(L.care>.15&&!called&&prankT(f))ab('prank',.5*(.4+Tr.energy+E.bored)*(1-Tr.temper*.4));   // sudah kapok, tapi jail lagi
+  if(!W.sleep&&L.en<.55&&!called)ab('sleep',(.55-L.en)*5+E.sleepy);
+  let tot=0;for(const k in W)tot+=W[k];if(tot<=0)W.hops=1;
+  return W}
+function cool(f,m){reasonSay(f,m);const L=f.L,E=L.E,c=CD[m];if(c)L.cd[m]=NOW()+c*rr(.8,1.3);
+  L.hist.push(m);if(L.hist.length>4)L.hist.shift();L.cur={m,joy:E.joy,fear:E.fear,sad:E.sad,anger:E.anger}}
+// belajar: tindakan yang berakhir menyenangkan lebih sering dipilih lagi, yang menyakitkan dihindari
+function ended(f,m){const L=f.L;if(!L)return;
+  if(m==='sulk'){L.E.anger*=.2;if(f.mo&&!f.mo.pl)M(f,f.mo).g*=.3;if(f.mo&&!f.mo.pl&&f.mo.L){const o=f.mo;M(f,o).a=Math.min(1,M(f,o).a+.15);talk([[f,pk(PH.sulkend),0,'happy'],[o,pk(['Yeay! Temenan lagi!','Asyik, main lagi yuk!','Maaf ya tadi, kita kan teman']),2.1,'happy']])}else S(f,'sulkend',1)}
+const c=L.cur,E=L.E;
+  if(m==='sleep'&&!f.fk){L.pl.push({x:f.x,z:f.z});if(L.pl.length>3)L.pl.shift()}
+  if(!c||c.m!==m)return;L.cur=null;
+  const r=(E.joy-c.joy)+E.pride*.5-(E.fear-c.fear)-(E.sad-c.sad)*.8-(E.anger-c.anger)*.3-(f.hu>0?.5:0);
+  L.pref[m]=clamp((L.pref[m]||1)*(1+.3*r),.4,2)}
+
+// target jail: yang sering kutabrak (sudah kupelajari), atau pemain yang sering menabrakku
+function prankT(f){const L=f.L;let b=null,bs=1.5;for(const o of fol){if(o===f)continue;const m=L.mem[o.id];if(m&&(m.ob||0)>bs){bs=m.ob;b=o}}
+  const mp=L.mem.P;if(mp&&(mp.h||0)>bs&&Math.hypot(pos.x-f.x,pos.z-f.z)<20)b=PL;return b}
+function teach(i,j){const a=fol[i];M(a,fol[j]).ob=3;a.L.care=.8;a.L.cd={}}
+// ---- mulai perilaku baru (absurd / sosial / pemain). return true bila ditangani ----
+function start(f,m,o){
+  if(m==='sleep'&&!called&&!f.fk){const L=f.L;let sp=L.pl.length?L.pl[0]:null;
+    if(!sp){let b=null,bm=.3;for(const q of fol){const r=L.mem[q.id];if(q!==f&&r&&r.a>bm){bm=r.a;b=q}}if(b)sp={x:b.x+rr(-1.2,1.2),z:b.z+rr(-1.2,1.2)}}
+    if(sp&&Math.hypot(sp.x-f.x,sp.z-f.z)>3){setM(f,'nest',rr(5,9));L.gp=sp;return true}}
+  if(m==='backwalk'){setM(f,m,rr(2.5,4));f.ang=rr(0,6.283);ex(f,'happy',1);return true}
+  if(m==='shadow'){setM(f,m,rr(3,4.5));f.cx=f.x;f.cz=f.z;f.ang=rr(0,6.283);ex(f,'yell',1);return true}
+  if(m==='freeze'){setM(f,m,rr(3,5));ex(f,'wow',.6);return true}
+  if(m==='fakesleep'){setM(f,'sleep',rr(3.5,5.5));f.fk=1;return true}
+  if(m==='gazepl'){setM(f,m,rr(4,7));ex(f,'wow',1);return true}
+  if(m==='followpl'){setM(f,m,rr(4,6.5));ex(f,'yell',.8);return true}
+  if(m==='hidebehind'){setM(f,m,rr(3.5,6),o);return true}
+  if(m==='dash'){setM(f,m,rr(3,4.5));f.ang=rr(0,6.283);return true}
+  if(m==='attn'){setM(f,m,rr(4,6));ex(f,'yell',.8);return true}
+  if(m==='tiru'){setM(f,m,rr(6,9));ex(f,'happy',1);return true}
+  if(m==='kejarpl'){setM(f,m,rr(10,14));ex(f,'yell',.8);return true}
+  if(m==='tantang'){setM(f,m,16);ex(f,'wow',.8);return true}
+  if(m==='prank'){const v=prankT(f);if(!v)return false;setM(f,m,rr(7,10),v);return true}
+  return false}
+
+// ---- kejadian & memori ----
+function bump(f,c,sp){const L=f.L;if(!L)return;const Tr=L.T,E=L.E;
+  E.surprise=Math.min(1,E.surprise+.6);
+  if(c){const m=M(f,c);m.g=Math.min(1,m.g+(sp>6?.32:.2));m.a=Math.max(-1,m.a-.1);
+    E.anger=Math.min(1,E.anger+.35*Tr.temper);E.fear=Math.min(1,E.fear+.3*(1-Tr.brave))}
+  const t0=NOW();
+  if(c&&c.pl){G.news.push({k:'pl',a:f,t:t0,know:[f]});if(G.news.length>8)G.news.shift();const pm=M(f,c);pm.h=(pm.h||0)+1;if(pm.h>=2&&rdy(L,'plw',t0)){L.cd.plw=t0+20;S(f,'pl_slow',1)}else S(f,'bump_player',1)}
+  else if(c&&c.L&&!(HMODE[c.mode]||c.mode==='chase'||c.mode==='brawl'||c.mode==='prank')){   // tabrakan tidak sengaja
+    const cm=M(c,f);cm.ob=(cm.ob||0)+1;E.anger*=.6;M(f,c).g*=.6;   // minta maaf meredakan marah
+    const lrn=cm.ob>=2&&rdy(c.L,'ln',t0);if(lrn){c.L.cd.ln=t0+25;c.L.care=Math.min(1,c.L.care+.3)}
+    if(!busy(f)&&!busy(c)){const FG=[['Nggak apa-apa, kita kan teman','Hehe, iya nggak apa-apa!'],['Hiks... iya, nggak apa-apa'],['Hmph! Hati-hati dong!','Awas ya, jangan diulang!'],['Nggak apa-apa, ayo nari aja!'],['Hmm, kok bisa nabrak ya?']][f.pi%5];
+      talk([[f,pk(PH.bump_hit),0,'wow'],[c,lrn?pk(PH.learn):pk(PH.sorry),2.1],[f,pk(FG),4.2,f.pi===2?'angry':'happy']].concat(lrn?[[c,'Aku janji pelan-pelan ya!',6.3,'happy']]:[]))}
+    else S(f,'bump_hit',!busy(f))}
+  else S(f,'bump_hit',!busy(f));
+  mark(f,'bump')}
+// berantem dibatasi: jeda global & sahabat enggan saling pukul (cukup tersenggol lalu pusing)
+function brawlOK(a,b){const t=NOW(),r=a.L.mem[b.id];if(t-(G.lb||-99)<90||(r&&r.a>.3))return false;G.lb=t;return true}
+function brawlStart(a,b){G.news.push({k:'fight',a,b,t:NOW(),know:[a,b].concat(fol.filter(o=>o!==a&&o!==b&&Math.hypot(o.x-a.x,o.z-a.z)<12))});if(G.news.length>8)G.news.shift();talk([[a,pk(['Aku kesal sama kamu!','Awas ya, kamu!','Kamu nakal!']),0,'angry'],[b,pk(['Eh! Aku salah apa?','Kok aku sih? Jangan dong!','Ih, aku nggak salah!']),2.1,'wow'],[a,pk(['Tadi kamu nabrak aku!','Pokoknya kamu salah!','Dasar jail!']),4.2,'angry'],[b,pk(['Aku nggak sengaja!','Ih, kamu yang duluan!','Sini kalau berani!']),6.3,'angry']]);[[a,b],[b,a]].forEach(([x,y])=>{x.L.nb++;x.L.fc=(x.L.fc||0)+1;const m=M(x,y);m.g=Math.min(1,m.g+.35);m.a=Math.max(-1,m.a-.15);
+  x.L.E.anger=Math.min(1,x.L.E.anger+.5*x.L.T.temper+.2);x.L.E.fear=Math.min(1,x.L.E.fear+.2*(1-x.L.T.brave));mark(x,'brawl')})}
+function peace(a,b){talk([[a,pk(['Udah ah, capek berantem...','Aduh, udah-udah...']),0],[b,pk(['Iya, kita kan teman...','Iya, jangan berantem lagi ya']),2.1],[a,'Maaf ya...',4.2,'sad'],[b,pk(['Aku juga maaf. Temenan lagi!','Aku juga maaf! Yuk main bareng']),6.3,'happy']]);setM(a,'chat',8,b);setM(b,'chat',8,a);[[a,b],[b,a]].forEach(([x,y])=>{const m=M(x,y);m.a=Math.min(1,m.a+.25);m.g=0;m.f*=.3;
+  x.L.E.anger*=.3;x.L.E.joy=Math.min(1,x.L.E.joy+.5);mark(x,'peace')})}
+function win(w,l){talk([[w,pk(['Aku menang! Hore!','Hehe, kuat kan!']),0,'yell'],[l,pk(['Huhu... sakit','Aduh... sakit banget']),2.1,'sad'],[w,pk(['Maaf ya, sakit ya? Kita kan teman','Jangan ngambek dong, kita kan teman']),4.2,'happy'],[l,pk(['Hmph! Aku masih kesal!','Iya deh... tapi jangan gitu lagi']),6.3]]);setM(l,'sulk',rr(5,8),w);w.L.E.pride=1;w.L.E.joy=Math.min(1,w.L.E.joy+.4);const m=M(l,w);m.g=Math.min(1,m.g+.3);m.f=Math.min(1,m.f+.25*(1-l.L.T.brave));
+  l.L.E.sad=Math.min(1,l.L.E.sad+.6);mark(w,'win');mark(l,'lose')}
+function place(f){const L=f.L;return L.pl.length&&Math.random()<.35?L.pl[Math.floor(Math.random()*L.pl.length)]:null}
+function sm(f){if(f.mode==='brawl')return 1;const L=f.L,E=L.E;let v=1+E.excite*.25+E.anger*.1-E.sleepy*.3-E.sad*.2;if(L.care>.15&&L.nd<3.2)v*=1-.35*L.care;return clamp(v,.5,1.3)}   // sudah belajar: pelan-pelan di dekat teman
+function pJump(){const t=NOW();
+  fol.forEach(f=>{if(called||f.mode||f.hu>0||!f.gr)return;const L=f.L,d=Math.hypot(pos.x-f.x,pos.z-f.z);
+    if(d>12||L.T.energy<.5||L.T.social<.5||!rdy(L,'mim',t))return;
+    if(Math.random()<.55){L.cd.mim=t+rr(6,12);f.jd=rr(.1,.45);S(f,'jumpmimic');L.E.joy=Math.min(1,L.E.joy+.2);f.gz=PL;f.gzT=1}})}
+
+// ---- persepsi + emosi + ingatan + reaksi pemain (interval, bukan tiap frame) ----
+function tick(f,i,dt){
+  const L=f.L;L.sd+=dt;
+  const dpl=Math.hypot(pos.x-f.x,pos.z-f.z),iv=dpl>22?1.1:dpl>12?.55:.3;   // NPC jauh diproses lebih jarang
+  if(L.sd<iv)return;const d=L.sd;L.sd=0;
+  const t=NOW(),Tr=L.T,E=L.E,free=!called,idleNow=!f.mode&&!(f.hu>0);
+  const dec=(k,r,b)=>{E[k]=b+(E[k]-b)*Math.exp(-r*d)};
+  dec('joy',.25,.1);dec('sad',.3,0);dec('anger',.18+.1*(1-Tr.temper),0);dec('fear',.35,0);dec('curio',.15,Tr.curio*.25);
+  dec('shy',.3,Tr.shy*.2);dec('surprise',1.2,0);dec('confused',.8,0);dec('pride',.2,0);dec('jealous',.25,0);dec('excite',.3,Tr.energy*.2);
+  // tubuh & energi
+  if(f.mode==='sleep'&&!f.fk)L.en=Math.min(1,L.en+d*.1);
+  else L.en=Math.max(0,L.en-d*(.0015+(Math.hypot(f.vx,f.vz)>3?.0025:0)*(.5+Tr.energy)));
+  E.sleepy=clamp((.55-L.en)*2.2+Tr.lazy*.12,0,1);
+  L.care=Math.max(0,L.care-d*.004);   // pelajaran lama-lama terlupa -> bisa kambuh
+  if(f.nz&&f.mode==='sleep'&&G.ps>2.5){f.mode=null;f.mo=null;f.idl=.4;f.nz=0;ex(f,'wow',1);S(f,'wakeup',1)}
+  // kebutuhan batin: sosial, main, jelajah (naik pelan, turun bila terpenuhi)
+  {const N=L.N,m=f.mode;N.soc=clamp(N.soc+d*.012*Tr.social-(SOCM[m]||near0(f)<4?d*.08:0),0,1);
+   N.fun=clamp(N.fun+d*.012*(.5+Tr.energy)-(FUNM[m]?d*.1:0),0,1);N.exp=clamp(N.exp+d*.01*(.3+Tr.curio)-(EXPM[m]?d*.1:0),0,1);
+   if(FUNM[m])E.joy=Math.min(1,E.joy+d*.04*(.5+Tr.energy));L.nb=Math.max(0,L.nb-d*.01);
+   for(const k in L.pref)L.pref[k]+=(1-L.pref[k])*.02*d}
+  // kebosanan & inisiatif
+  if(f.mode)E.bored*=Math.exp(-d*.4);else E.bored=Math.min(1,E.bored+d*(.025+.02*Tr.energy));
+  if(!f.mode&&E.bored>.6&&f.idl>1.2)f.idl=1.2;
+  // lonjakan spontan (si pemarah kadang marah tanpa alasan)
+  if(Tr.temper>.8&&Math.random()<d*.015)E.anger=Math.min(1,E.anger+.55);
+  if(Tr.energy>.7&&Math.random()<d*.02)E.excite=Math.min(1,E.excite+.5);
+  // ingatan: pudar perlahan (marah cepat reda -> bisa berbaikan)
+  for(const k in L.mem){const m=L.mem[k];m.a*=Math.exp(-d*.003);m.g*=Math.exp(-d*.02);m.f*=Math.exp(-d*.01);if(m.h)m.h*=Math.exp(-d*.004);if(m.ob)m.ob*=Math.exp(-d*.004)}
+  if(E.joy>.7&&Math.random()<d*.1){L.pl.push({x:f.x,z:f.z});if(L.pl.length>3)L.pl.shift()}
+  // mengamati bola lain (jarak & sudut pandang terbatas)
+  let near=99,nearO=null;
+  for(const o of fol){if(o===f)continue;
+    const dx=o.x-f.x,dz=o.z-f.z,dd=Math.hypot(dx,dz);if(dd<near){near=dd;nearO=o}
+    if(o.mo===f){const m=M(f,o);
+      if(HMODE[o.mode]){m.f=Math.min(1,m.f+d*(.12*(1-Tr.brave)+.03));m.g=Math.min(1,m.g+d*.05);m.a=Math.max(-1,m.a-d*.02);E.anger=Math.min(1,E.anger+d*.06*Tr.temper);E.fear=Math.min(1,E.fear+d*.1*(1-Tr.brave))}
+      else if(o.mode==='chase'||o.mode==='run'){m.f=Math.min(1,m.f+d*.04*(1-Tr.brave))}
+      else if(FMODE[o.mode])m.a=Math.min(1,m.a+d*.03)}
+    if(f.mo===o&&FMODE[f.mode]){const m=M(f,o);m.a=Math.min(1,m.a+d*.025);E.joy=Math.min(1,E.joy+d*.05)}
+    if(dd>10)continue;
+    if(!(dd<3.5||Math.abs(nrm(Math.atan2(dx,dz)-f.hd))<1.9))continue;   // di luar pandangan
+    const m=L.mem[o.id];
+    if(m){m.t=t;
+      if(m.g>.4&&dd<6&&!f.bf){E.fear=Math.min(1,E.fear+d*.2*(1-Tr.brave)*m.g);f.gz=o;f.gzT=1;L.avoid=o;L.avT=t}   // waspada pada yang pernah mengganggu
+      if(m.a>.5&&dd<6&&o.mo&&o.mo!==f&&!o.mo.pl&&FMODE[o.mode]&&!f.mode)E.jealous=Math.min(1,E.jealous+d*.12)}
+    if(isWeird(o)){E.curio=Math.min(1,E.curio+d*.15*Tr.curio);E.excite=Math.min(1,E.excite+d*.05*Tr.energy)}
+    if(dd<7){const k2=Math.min(.5,d*.12*Tr.social),oe=o.L.E;E.joy+=(oe.joy-E.joy)*k2;E.fear+=(oe.fear-E.fear)*k2*.7;E.excite+=(oe.excite-E.excite)*k2}   // emosi menular
+    // membela teman yang sedang diserang
+    if(free&&!f.mode&&!(f.hu>0)&&(HMODE[o.mode]||o.mode==='chase')&&o.mo&&!o.mo.pl&&o.mo!==f&&Tr.brave>.5&&rdy(L,'df',t)){
+      const vm=L.mem[o.mo.id];if(vm&&vm.a>.35){L.cd.df=t+20;L.fr=o.mo;setM(f,'defend',rr(3,5),o);ex(f,'angry',1);talk([[f,pk(PH.defend),0,'angry'],[o,pk(['Aku cuma main kok!','Dia duluan!','Iya iya, nggak jadi deh']),2.1],[o.mo,'Makasih ya udah belain aku!',4.2,'happy']])}}}
+  L.nd=near;
+  // mengamati pemain
+  const px=pos.x-f.x,pz=pos.z-f.z,seesP=dpl<10&&(dpl<3.5||Math.abs(nrm(Math.atan2(px,pz)-f.hd))<1.9),
+    mp=L.mem.P||(L.mem.P={a:0,g:0,f:0,t:0}),closing=(f.x-pos.x)*vel.x+(f.z-pos.z)*vel.z>0;
+  if(seesP){mp.t=t;
+    if(free&&G.ps>5&&closing&&dpl<4.5&&rdy(L,'st',t)){   // terkejut: ada yang melesat mendekat tiba-tiba
+      L.cd.st=t+6;E.surprise=Math.min(1,E.surprise+.7);E.fear=Math.min(1,E.fear+.35*(1-Tr.brave));
+      if(f.mode!=='brawl'&&!f.bf){intr(f);const a=Math.atan2(f.x-pos.x,f.z-pos.z)+rr(-.7,.7);f.vx+=Math.sin(a)*3.5;f.vz+=Math.cos(a)*3.5;fhop(f);ex(f,'wow',1);S(f,'startle',1)}}
+    if(G.pj&&dpl<9&&!f.mode&&rdy(L,'lk',t)){L.cd.lk=t+3;f.gz=PL;f.gzT=1.2;E.curio=Math.min(1,E.curio+.15)}
+    if(G.spin)E.confused=Math.min(1,E.confused+.25*(1-Tr.curio*.5))}
+  // reaksi terhadap tindakan pemain (tiap bola beda, ada cooldown)
+  if(free&&idleNow&&rdy(L,'pr',t)&&dpl<16){
+    let did=false;
+    if(G.spin&&seesP){if(Tr.energy>.5&&Math.random()<.35+Tr.social*.35){setM(f,'spin',rr(1.4,2.2));fhop(f);ex(f,'yell',f.mt);did=true}}
+    else if(G.run&&dpl<14&&seesP){
+      if(Math.random()<.1+.45*Tr.energy*Tr.brave+Math.max(0,mp.a)*.3){setM(f,'followpl',rr(4,6.5));ex(f,'yell',.8);did=true}
+      else if(Tr.brave<.35&&dpl<8&&Math.random()<.4){setM(f,'hidebehind',rr(3,5),buddyL(f,'hidebehind'));did=true}}
+    else if(G.still){
+      const st=idleT>40?3:idleT>16?2:1;   // makin lama pemain diam, makin berani
+      if(Math.random()<.08+Tr.curio*.12+E.bored*.12+Math.max(0,mp.a)*.1+(st-1)*.06){
+        if(st>=3&&(Tr.lazy>.5||E.sleepy>.5)){L.gp={x:pos.x+rr(-2.2,2.2),z:pos.z+rr(-2.2,2.2)};L.nap=1;setM(f,'nest',rr(6,10));S(f,'nap',1)}
+        else if(st>=2&&Tr.brave>.35&&Tr.energy>.3&&Tr.shy<.6&&rdy(L,'poke',t)){L.cd.poke=t+rr(50,80);setM(f,'poke',rr(7,10))}
+        else if(Tr.dance>.6||(Tr.social>.8&&Tr.energy>.7))setM(f,'attn',rr(4,6));
+        else if(Tr.curio>.55||(st===1&&Tr.lazy<=.7))setM(f,'gazepl',rr(4,7));
+        else if(mp.a>.3&&Math.random()<.5)setM(f,'hug',rr(4,6));
+        else if(Tr.lazy<=.7)setM(f,'gazepl',rr(3,5));
+        did=true}}
+    else if(seesP&&dpl<6&&closing&&G.ps>1){
+      if(Tr.shy>.5&&Math.random()<.5)setM(f,'hidebehind',rr(3,5),buddyL(f,'hidebehind'));
+      else if(Tr.curio>.6){f.gz=PL;f.gzT=1.5;E.curio=Math.min(1,E.curio+.2)}
+      else if(Tr.social>.8&&Math.random()<.3){fhop(f);ex(f,'happy',1)}
+      did=true}
+    if(did){if(f.mode)S(f,f.mode);L.cd.pr=t+(G.still?rr(14,26):rr(8,16))}}
+  // menghindari rival / yang ditakuti
+  if(free&&idleNow&&L.avoid&&t-L.avT<2&&E.fear>.45&&rdy(L,'av',t)){
+    L.cd.av=t+10;let o=null,bm=-9;
+    for(const q of fol){if(q===f||q===L.avoid)continue;const m=L.mem[q.id],s=(m?m.a:0)+Math.random();if(s>bm){bm=s;o=q}}
+    if(o){setM(f,'hidebehind',rr(3,5),o);ex(f,'wow',.8);S(f,'hidebehind',1)}}
+  // mencari teman yang terpisah
+  if(free&&idleNow&&nearO&&near>14&&rdy(L,'sk',t)){
+    L.cd.sk=t+25;let b=nearO,bm=-9;
+    for(const o of fol){if(o===f)continue;const m=L.mem[o.id],s=(m?m.a:0)-Math.hypot(o.x-f.x,o.z-f.z)*.01;if(s>bm){bm=s;b=o}}
+    setM(f,'seek',rr(5,8),b);ex(f,'sad',.8);S(f,'seek',1)}
+  // pemalas terbangun karena penasaran
+  if(f.mode==='sleep'&&!f.fk&&Tr.curio>.55&&Math.random()<.12){const n=noticeF(f);if(n&&n.mode!=='sleep'){ex(f,'wow',1);f.mode=null;f.mo=null;f.idl=.3;E.curio=Math.min(1,E.curio+.3)}}
+  // mudah teralihkan (polos): tiba-tiba tertarik pada kejadian lain
+  if(free&&LOWM[f.mode]&&f.mode!=='sleep'&&f.mode!=='nest'&&!f.fk&&Tr.curio>.3&&Math.random()<d*.04*Tr.curio){const n=noticeF(f);if(n&&n!==f.mo&&n.mode!=='sleep'){S(f,'distract');intr(f)}}
+  for(const k of EK)E[k]=clamp(E[k],0,1);
+  // emosi -> ekspresi wajah
+  if(!f.mode&&!(f.exT>0)&&!(f.hu>0)){let bk=null,bv=.5;for(const k in EXMAP)if(E[k]>bv){bv=E[k];bk=k}
+    if(bk&&Math.random()<.7)ex(f,EXMAP[bk],1.2)}
+}
+
+// ---- kejadian spontan (satu per waktu, ada syarat, peluang, cooldown global) ----
+function gather(mem,gp0){let cx=0,cz=0;mem.forEach(f=>{cx+=f.x;cz+=f.z});cx/=mem.length;cz/=mem.length;
+  const a=rr(0,6.283),r=rr(3,6),gp=gp0||{x:cx+Math.sin(a)*r,z:cz+Math.cos(a)*r};
+  mem.forEach(f=>{setM(f,'gaze',rr(5,7.5));f.L.gp=gp;ex(f,'wow',.9)});if(!gp0)S(mem[0],'distract',1)}
+function global(dt){dlgTick();talkWatch(dt);
+  const ps=Math.hypot(vel.x,vel.z);G.ps=ps;G.pj=!grounded;
+  const dh=nrm(heading-G.lh);G.lh=heading;G.sa=G.sa*Math.exp(-dt/1.6)+Math.abs(dh);
+  G.spin=G.sa>5.5;G.run=ps>5.2;G.still=idleT>7;
+  if(idleT<2)G.wp=0;   // pemain diam lama: bola-bola berkumpul mengelilingi & bertanya-tanya
+  if(idleT>26&&!G.wp&&!called){const fr=fol.filter(f=>!f.mode&&!(f.hu>0)&&Math.hypot(f.x-pos.x,f.z-pos.z)<20);
+    if(fr.length>=2){G.wp=1;gather(fr.slice(0,4),{x:pos.x,z:pos.z});S(fr[0],'wp1',1);S(fr[1],'wp2',1)}}
+  G.ct-=dt;if(G.ct<=0){G.ct=rr(8,15);chat()}
+  G.t+=dt;if(G.t<G.next||called)return;G.t=0;G.next=rr(9,20);
+  if(fol.some(f=>f.mode==='brawl'||f.mode==='gaze'||f.hu>0))return;
+  const t=NOW(),ok=n=>!(G.cd[n]>t),idle=fol.filter(f=>!f.mode&&!(f.hu>0)&&Math.hypot(f.x-pos.x,f.z-pos.z)<28),C=[];
+  const avg=fn=>idle.reduce((q,f)=>q+fn(f),0)/Math.max(1,idle.length);
+  if(idle.length>=3&&ok('gather'))C.push(['gather',.6+avg(f=>f.L.N.exp)]);
+  if(idle.length>=2&&ok('allLook'))C.push(['allLook',.8]);
+  if(idle.length>=2&&ok('duo'))C.push(['duo',1.2*(.5+avg(f=>f.L.N.soc))]);
+  if(idle.length>=2&&ok('chaseGame'))C.push(['chaseGame',.9]);
+  if(idle.length>=3&&ok('cheer'))C.push(['cheer',.5+avg(f=>f.L.E.joy+f.L.E.excite)]);
+  const grumps=idle.filter(f=>f.L.T.temper>.7),sleepers=fol.filter(o=>o.L.T.lazy>.55&&(!o.mode||o.mode==='sleep')&&!(o.hu>0));
+  if(grumps.length&&sleepers.length&&ok('bother'))C.push(['bother',1]);
+  if(!C.length)return;
+  let tot=0;C.forEach(c=>tot+=c[1]);let x=Math.random()*tot,ev=C[0][0];for(const c of C){x-=c[1];if(x<=0){ev=c[0];break}}
+  G.cd[ev]=t+rr(45,80);
+  const sh=a=>a.slice().sort(()=>Math.random()-.5);
+  if(ev==='gather')gather(sh(idle).slice(0,Math.min(idle.length,4)));
+  else if(ev==='allLook')gather(idle);
+  else if(ev==='duo'){const a=sh(idle).sort((p,q)=>q.L.T.dance-p.L.T.dance)[0],r=sh(idle.filter(o=>o!==a)).sort((p,q)=>(a.L.mem[q.id]?a.L.mem[q.id].a:0)-(a.L.mem[p.id]?a.L.mem[p.id].a:0))[0];
+    a.force='dance';a.pt=r;a.idl=0}
+  else if(ev==='chaseGame'){const a=sh(idle).sort((p,q)=>q.L.T.energy-p.L.T.energy)[0],r=sh(idle.filter(o=>o!==a))[0];a.force='chase';a.pt=r;a.idl=0}
+  else if(ev==='cheer'){const a=sh(idle).sort((p,q)=>q.L.T.energy*q.L.T.social-p.L.T.energy*p.L.T.social)[0];
+    setM(a,'hops',rr(2.5,3.5));ex(a,'yell',1);sh(idle.filter(o=>o!==a)).slice(0,3).forEach(o=>{setM(o,'hops',rr(2,3.2));ex(o,'happy',1.5)})}
+  else if(ev==='bother'){const a=sh(grumps)[0],o=sh(sleepers.filter(s=>s!==a))[0];if(a&&o&&!a.mode){a.force='ram';a.pt=o;a.idl=0}}
+}
+return{S,teach,bubble,react,talk,pk,busy,mediate,tap,brawlOK,ended,weights,buddy:buddyL,fpick,start,cool,tick,global,bump,brawlStart,peace,win,place,sm,pJump,rel,M,intr,
+  debug:()=>fol.map(f=>({n:PT[f.pi].n,mode:f.mode,en:+f.L.en.toFixed(2),T:f.L.T,E:f.L.E,mem:f.L.mem,places:f.L.pl.length}))}
+})();
+// ===== WILL: KEHENDAK & KEPUTUSAN MANDIRI (lapisan di atas LCA) =====
+// Ajakan -> utility decision (sifat, mood, hubungan, aktivitas, janji) -> TINDAKAN NYATA (ikut / pergi / lanjut aktivitas).
+// Dialog selalu dipilih SETELAH keputusan, jadi ucapan = tindakan. Memori: janji, penolakan, dendam ajakan.
+const WILL=(()=>{
+const NOW=()=>performance.now()*.001,pk=a=>a[Math.floor(Math.random()*a.length)],M=LCA.M,tk=LCA.talk;
+const NM=['si Kuning','si Biru','si Koral','si Pink','si Hijau'],wn=o=>o.pl?'kamu':o.ai?(o.nm||'AI'):NM[o.pi%5];
+const BUSY={dance:.3,ring:.3,train:.3,stack:.3,tantrum:.5,ram:.6,sneak:.6,carry:.3,chase:.3,run:.3,leap:.3,crouch:.3,cry:.4,sleep:.6,nest:.3,brawl:9,revenge:9,part:9,comfort:.4};
+const YES=['Aku ikut!','Ayo, aku ikut kamu!','Oke! Aku di belakangmu ya!','Siap, aku ikut!'],YESN=['Ayo! Aku ikut!','Oke, aku mau!','Asyik, ayo!'];
+const NO={tidur:['Zzz... aku lagi bobo, nggak mau!'],nakal:['Nggak mau! Kamu tadi nakal sama aku!'],kesal:['Nggak mau! Aku lagi kesal!'],ngantuk:['Aku ngantuk, nggak mau. Nanti ya, kalau udah bangun!'],males:['Aku males, nggak mau ah!'],takut:['Aku takut... nggak mau, aku pergi dulu!'],asing:['Aku belum akrab sama kamu, nggak mau!'],asyik:['Nggak mau, aku lagi asyik main!'],nanti:['Nggak mau, aku mau jalan-jalan sendiri!']};
+const ASK={main:'Main yuk!',jalan:'Jalan-jalan yuk, ikut aku!',tidur:'Bobo bareng yuk, aku ngantuk',tumpuk:'Ayo kerja sama, numpuk jadi menara!',ikutpl:'Yuk ikut si bola merah, seru lho!'};
+const W={next:NOW()+rr(8,14),deb:0};
+const sayc=(f,txt,e,cd)=>{const t=NOW();if(t<(f.sc||0))return;f.sc=t+(cd||6);tk([[f,txt,0,e||null,PL]])};
+const evR=(L,k,s)=>L.ev.some(e=>e.k===k&&NOW()-e.t<s);
+// ---- utility: mau menerima ajakan 'a'? (sifat + mood + hubungan + aktivitas + riwayat penolakan) ----
+function decide(f,a,kind){const L=f.L,T=L.T,E=L.E,m=M(f,a),md=f.mode,t=NOW();
+  let s=.35+Math.max(0,m.a)*.7+Math.min(0,m.a)*.5+T.social*.3+E.joy*.3-m.g*1.1-E.anger*.8-E.sleepy*.6-E.sad*.15-T.lazy*(L.en<.6?.42:.2)-(m.f>.5?.4:0)-(BUSY[md]||0)-(m.rj||0)*.25+rr(-.12,.12);
+  if(a.pl){L.ri=(t-(L.li||0)<45)?(L.ri||0)+1:0;L.li=t;s-=L.ri*.12}
+  if(kind==='tidur')s+=E.sleepy*1.1;
+  else s+=L.N.soc*.35+L.N.exp*.25+Math.max(L.N.fun,E.bored)*.25-.25;   // ajakan memenuhi kebutuhan sosial/jelajah/seru?
+  if(a.pl){const dd=Math.hypot(pos.x-f.x,pos.z-f.z);s-=Math.max(0,dd-15)*.01;   // malas menempuh jarak jauh
+    s+=Math.min(.3,(m.rf||0)*.1)+(L.ip||0)}   // sungkan kalau sudah sering menolak + belajar dari pengalaman ikut sebelumnya
+  const R=md==='sleep'?'tidur':m.g>.25?'nakal':E.anger>.35?'kesal':(E.sleepy>.5||L.en<.35)?'ngantuk':(T.lazy>.7&&L.en<.75)?'males':E.fear>.4?'takut':m.a<-.2?'asing':BUSY[md]?'asyik':'nanti';
+  return{yes:s>.5,rs:R,close:Math.abs(s-.5)<.12}}
+// ---- tindakan nyata ----
+function commit(f,m,dur){f.L.com={m,until:NOW()+dur,n:0,rt:0};f.dn=null}
+function follow(f,o,dur){f.j0=f.L.E.joy;if(o.pl)commit(f,'ikut',dur);setM(f,'ikut',dur,o);f.fin=0;f.gap=rr(2.4,3.6);f.lf=0;ex(f,'happy',1);f.hrt=1.2;if(o.pl){const m=M(f,o);m.pr=1;m.inv=(m.inv||0)+1}}
+function leave(f,a,rs){const L=f.L;if(a.pl&&f.mode==='ikut')L.ip=Math.max(-.4,(L.ip||0)-.12);L.lr={rs,t:NOW()};
+  if(rs==='asyik'){f.force=pk(['stroll','curious','hops','zoom']);f.idl=.3;f.gz=null;return}   // melanjutkan aktivitasnya sendiri
+  const ang=Math.atan2(f.z-a.z,f.x-a.x)+rr(-.5,.5),r=rr(9,14);let x=f.x+Math.cos(ang)*r,z=f.z+Math.sin(ang)*r;const pr=Math.hypot(x,z);if(pr>MAP-7){x*=(MAP-7)/pr;z*=(MAP-7)/pr}
+  setM(f,'pergi',rr(7,10),a);f.dx=x;f.dz=z;f.fin=0;f.af=(rs==='ngantuk'||rs==='males'||rs==='tidur')?'sleep':(rs==='kesal'||rs==='nakal')?'tantrum':null;
+  ex(f,rs==='takut'?'wow':(rs==='kesal'||rs==='nakal')?'angry':'sad',1.2);
+  if(a.pl&&(rs==='ngantuk'||rs==='males'))L.owe=NOW()+rr(50,70)}   // janji: kembali kalau sudah segar
+const EX={ngantuk:'Tapi nanti kalau udah bangun, aku janji ikut!',males:'Tapi nanti aku nyusul ya, janji!',asyik:'Kamu gabung aku main aja!'};
+const LR={ngantuk:'Soalnya tadi aku ngantuk',males:'Soalnya tadi aku males',kesal:'Soalnya tadi aku kesal',nakal:'Soalnya kamu pernah nakal sama aku',takut:'Soalnya tadi aku takut',asing:'Soalnya kita belum akrab',tidur:'Soalnya aku lagi bobo',nanti:'Soalnya aku mau jalan-jalan sendiri',asyik:'Soalnya aku lagi asyik main'};
+// ---- paham ketikan bebas: kata kunci -> maksud ----
+function parse(txt){const q=txt.toLowerCase();W.want=['kuning','biru','koral','pink','hijau'].findIndex(n=>q.includes(n));
+  if(/berhenti ikut|jangan ikut|stop|nggak usah ikut|tidak usah ikut|gak usah ikut/.test(q))return'stop';
+  if(/ajak.*teman|panggil|ajak (si )?(kuning|biru|koral|pink|hijau)/.test(q))return'ajakteman';
+  if(/ikut|ayo jalan|jalan yuk/.test(q))return'ikut';
+  if(/sini|kemari|datang|dekat/.test(q))return'sini';
+  if(/main|lari|kejar|lomba/.test(q))return'play';
+  if(/maaf|sorry|ampun/.test(q))return'sorry';
+  if(/bodoh|jelek|benci|bego|dasar|jahat/.test(q))return'insult';
+  if(/makasih|terima kasih|hebat|pintar|bagus|keren/.test(q))return'thanks';
+  if(/kenapa (tadi )?(pergi|menjauh|kabur)|tadi kenapa/.test(q))return'whyleft';
+  if(/kenapa|alasan|soalnya/.test(q))return'why';
+  if(/kabar|kamu kenapa|lagi apa|perasaan|mood/.test(q))return'feel';
+  if(/teman/.test(q))return'friend';
+  if(/nakal|berantem/.test(q))return'bad';
+  if(/dadah|bye|sampai jumpa/.test(q))return'bye';
+  if(/tanya|pertanyaan/.test(q))return'ask';
+  return null}
+function reply(f,k){const L=f.L,E=L.E,T=L.T,m=M(f,PL);
+  if(k==='stop'){const ik=f.mode==='ikut'||L.com;
+    return{ln:[ik?'Oke, aku berhenti ikut. Aku main sendiri dulu ya!':'Aku memang nggak lagi ikut kamu, kok'],e:'happy',go(){if(ik){m.pr=0;L.com=null;f.mode=null;f.mo=null;f.idl=rr(1,3)}}}}
+  if(k==='thanks'){m.a=Math.min(1,m.a+.05);E.joy=Math.min(1,E.joy+.15);f.hrt=1.5;return{ln:[pk(['Sama-sama! Kamu baik!','Hehe, makasih juga!','Aku jadi malu... hehe'])],e:'happy'}}
+  if(k==='insult'){m.a=Math.max(-1,m.a-.08);E.anger=Math.min(1,E.anger+.25*T.temper);E.sad=Math.min(1,E.sad+.15*(1-T.temper));const ang=T.temper>.6;
+    return{ln:[ang?'Kamu jahat! Aku kesal!':'Hiks... kok kamu bilang gitu...'],e:ang?'angry':'sad',go(){if(ang&&f.mode==='ikut'){m.pr=0;leave(f,PL,'kesal')}}}}
+  if(k==='whyleft'){const r=L.lr&&NOW()-L.lr.t<180?LR[L.lr.rs]:null;return{ln:[r||'Aku nggak lagi pergi kok'],e:null}}
+  return{ln:['Hm? Aku belum ngerti... coba bilang "ikut aku", "main yuk", atau "kamu kenapa?"'],e:'wow'}}
+function invite(f,k){const t=NOW();
+  if(k==='ajakteman'){const c=fol.filter(o=>o!==f&&!o.mode&&!(o.hu>0)&&Math.hypot(o.x-f.x,o.z-f.z)<30).sort((x,y)=>M(f,y).a-M(f,x).a),b=c.find(o=>o.pi%5===W.want)||c[0];
+    if(!b)return{ln:['Nggak ada yang bisa kuajak sekarang...'],e:'sad',go(){}};
+    return{ln:['Oke, aku ajak '+wn(b)+'!'],e:'happy',go(){setM(f,'ajakn',14,b);f.ia='ikutpl';f.fin=0;f.ds=0;f.k=0}}}
+  const d=decide(f,PL,'x');
+  if(d.yes)return{ln:(d.close?[pk(['Hmm... yaudah deh!','Hmm... boleh deh, aku ikut'])]:[k==='sini'?pk(['Oke, aku ke situ!','Iya, aku ke sana sekarang!']):pk(YES)]),e:'happy',go(){M(f,PL).rf=0;if(k==='sini'){setM(f,'ke',12,PL);f.ds=0}else{follow(f,PL,rr(28,45))}}};
+  M(f,PL).rf=(M(f,PL).rf||0)+1;
+  return{rs:d.rs,ln:(d.close?['Hmm... aku pikir-pikir dulu...']:[]).concat([pk(NO[d.rs])],EX[d.rs]?[EX[d.rs]]:[]),e:(d.rs==='kesal'||d.rs==='nakal')?'angry':'sad',go(){leave(f,PL,d.rs)}}}
+// ---- ajakan antar NPC: pergi ke target, bertanya, target memutuskan sendiri ----
+function resolve(a,b,act){
+  if(BUSY[b.mode]>=9||b.mode==='sleep'&&act!=='tidur'){a.mode=null;a.mo=null;a.idl=2;return}
+  const dc=decide(b,a,act==='tidur'?'tidur':'x');setM(a,'chat',6,b);if(!b.mode)setM(b,'chat',6,a);
+  const L1=[[a,ASK[act],0,'happy']];
+  L1.push(dc.yes?[b,pk(YESN),2.2,'happy']:[b,pk(NO[dc.rs]),2.2,(dc.rs==='kesal'||dc.rs==='nakal')?'angry':'sad']);
+  tk(L1,()=>{a.mode=null;a.mo=null;b.mode=null;b.mo=null;
+    if(dc.yes){M(a,b).a=Math.min(1,M(a,b).a+.05);M(b,a).a=Math.min(1,M(b,a).a+.05);
+      if(act==='main'){const g=pk(['chase','dance','zoom']);if(g==='zoom'){a.force=b.force='zoom'}else{a.force=g;a.pt=b}a.idl=b.idl=.05}
+      else if(act==='jalan'){const an=rr(0,6.283),r=rr(12,18),dur=rr(14,20);let x=a.x+Math.cos(an)*r,z=a.z+Math.sin(an)*r;const pr=Math.hypot(x,z);if(pr>MAP-7){x*=(MAP-7)/pr;z*=(MAP-7)/pr}
+        setM(a,'jalan',dur,b);a.dx=x;a.dz=z;a.fin=0;follow(b,a,dur)}
+      else if(act==='tidur'){const sp={x:a.x+rr(-6,6),z:a.z+rr(-6,6)};a.L.gp=sp;b.L.gp={x:sp.x+1.1,z:sp.z+.6};setM(a,'nest',rr(5,9));setM(b,'nest',rr(5,9))}
+      else if(act==='tumpuk'){a.force='stack';a.pt=b;a.idl=.05}
+      else if(act==='ikutpl'){follow(a,PL,rr(25,40));follow(b,PL,rr(25,40));sayc(b,'Kami ikut kamu!','happy',1)}}
+    else{const m=M(a,b);m.rj=(m.rj||0)+1;m.a=Math.max(-1,m.a-.03);a.L.E.sad=Math.min(1,a.L.E.sad+.2);ex(a,'sad',1.5);leave(b,a,dc.rs);
+      if(act==='ikutpl'){sayc(a,'Dia nggak mau. Aku ikut kamu aja!','sad',1);follow(a,PL,rr(25,40))}else{a.force='stroll';a.idl=1.5}}})}
+function debat(a,b){W.deb=NOW()+60;const T1=pk([['Kamu tadi nyerobot tempatku!','Enak aja! Itu tempatku duluan!'],['Aku yang paling cepat!','Bohong! Aku yang paling cepat!'],['Kamu berisik banget!','Kamu yang berisik!']]);
+  setM(a,'chat',10,b);setM(b,'chat',10,a);
+  const esc=(a.L.T.temper+b.L.T.temper)/2+(M(a,b).g+M(b,a).g)*.5+rr(-.3,.3),pc=Math.random()<.5;
+  tk([[a,T1[0],0,'angry'],[b,T1[1],2.2,'angry'],[a,'Aku nggak mau ngalah!',4.4,'angry'],[b,'Aku juga nggak mau!',6.6,'angry']],()=>{
+    if(esc>.95&&LCA.brawlOK(a,b)){a.mode=null;b.mode=null;LCA.brawlStart(a,b)}
+    else if(pc||esc<.5){a.mode=null;b.mode=null;LCA.peace(a,b)}
+    else{a.mode=null;b.mode=null;tk([[a,'Hmph! Aku pergi!',0,'angry'],[b,'Pergi sana!',1.6,'angry']]);leave(a,b,'kesal');leave(b,a,'kesal')}})}
+function spont(f,d){const L=f.L,E=L.E,T=L.T,m=M(f,PL),t=NOW();L.wcd=t+rr(25,45);
+  const c=fol.filter(o=>o!==f&&!o.mode&&!(o.hu>0)&&Math.hypot(o.x-f.x,o.z-f.z)<15),sc=o=>{const r=M(f,o);return r.a-r.g-(r.rj||0)*.3+rr(0,.5)},b=c.sort((x,y)=>sc(y)-sc(x))[0];
+  const w={lead:(d>5&&d<20&&L.N.soc>.45&&t>(L.ldc||0))?1.2+T.social+Math.max(0,m.a):0,inv:b?.6+L.N.soc+E.bored+(E.sad>.3?.5:0):0,
+    deb:(b&&(T.temper>.6||M(f,b).g>.3)&&t>W.deb)?1.4*T.temper+M(f,b).g*2:0,joke:b?.5+T.energy*.6:0,explore:L.en>.45?T.curio*.8+E.bored*.8+L.N.exp*.6:0,rest:(E.sleepy>.5||L.en<.4)?2+E.sleepy*2:0};
+  let tot=0;for(const k in w)tot+=w[k];if(tot<=0)return;let x=Math.random()*tot,k='inv';for(const q in w){x-=w[q];if(x<=0){k=q;break}}
+  if(k==='lead'){const an=rr(0,6.283),r=rr(10,16);let px=f.x+Math.cos(an)*r,pz=f.z+Math.sin(an)*r;const pr=Math.hypot(px,pz);if(pr>MAP-9){px*=(MAP-9)/pr;pz*=(MAP-9)/pr}
+    setM(f,'pimpin',22,PL);f.dx=px;f.dz=pz;f.fin=0;L.ldc=t+70;sayc(f,'Ikut aku yuk! Ada yang mau kutunjukin!','yell',1)}
+  else if(k==='inv'){const act=T.dance>.7?'main':T.lazy>.6?'tidur':T.curio>.7?'jalan':pk(['main','jalan','tumpuk']);setM(f,'ajakn',12,b);f.ia=act;f.fin=0;f.ds=0;sayc(f,'Eh '+wn(b)+'! Tunggu!','yell',1)}
+  else if(k==='deb')debat(f,b);
+  else if(k==='explore'){const an=rr(0,6.283),r=rr(20,40);let x=f.x+Math.cos(an)*r,z=f.z+Math.sin(an)*r;const pr=Math.hypot(x,z);if(pr>MAP-7){x*=(MAP-7)/pr;z*=(MAP-7)/pr}
+    setM(f,'pergi',rr(10,14),PL);f.dx=x;f.dz=z;f.fin=0;f.af='curious';sayc(f,'Aku mau jelajah ke sana ah!','happy',1)}
+  else if(k==='rest'){const sp=L.pl[0]||{x:f.x+rr(-8,8),z:f.z+rr(-8,8)};setM(f,'pergi',rr(8,12),PL);f.dx=sp.x;f.dz=sp.z;f.fin=0;f.af='sleep';sayc(f,'Aku capek, cari tempat bobo dulu ya','sad',1)}
+  else{const J=pk([['Lihat! Aku bisa jadi gepeng!','flat'],['Aku jalan mundur tanpa lihat, hebat kan?','backwalk'],['Aku muter sampai pusing, lihat ya!','spin']]);
+    tk([[f,J[0],0,'yell'],[b,pk(['Hahaha! Konyol banget!','Hih, kamu aneh!','Hahaha, kamu lucu!']),2.2,'happy']]);f.force=J[1];f.idl=.1;setM(b,'laugh',4,f);M(b,f).a=Math.min(1,M(b,f).a+.04)}}
+// ---- pemantau per-NPC (bahaya, perubahan pikiran, janji) ----
+function global(dt){const t=NOW(),ps=Math.hypot(vel.x,vel.z);
+  for(const f of fol){f.wc=(f.wc||0)-dt;if(f.wc>0)continue;f.wc=rr(.35,.5);
+    const L=f.L,E=L.E,m=M(f,PL),md=f.mode,d=Math.hypot(pos.x-f.x,pos.z-f.z);
+    if(d<=35)f.ls={x:pos.x,z:pos.z};
+    if(!md&&!(f.hu>0)&&!called&&d>28&&d<85&&m.a>.3&&t>(L.mis||0)){L.mis=t+rr(30,50);sayc(f,pk(['Kamu ke mana aja? Aku kangen!','Tunggu, aku nyusul ya!']),'happy',1);setM(f,'ke',22,PL);f.ds=0;continue}
+    if(md!=='brawl'&&md!=='part'&&md!=='minggir'&&md!=='sleep'&&!(f.hu>0)&&t>(f.dg||0)&&d<4.6+Math.min(3,(m.h||0)*.6)){   // hindari bahaya
+      const ap=ps>(m.h>=2?5:6.5)&&((f.x-pos.x)*vel.x+(f.z-pos.z)*vel.z)/(d*ps+.001)>.6,ld=!grounded&&h>.8&&d<2.4;
+      if(ap||ld){f.dg=t+3.5;const pv=(md==='ikut'||md==='jalan'||md==='ke')?{m:md,mt:f.mt,mo:f.mo}:null,nx=(f.x-pos.x)/(d||1),nz=(f.z-pos.z)/(d||1),sg=Math.random()<.5?1:-1;
+        setM(f,'minggir',1.1);f.fin=0;f.pv=pv;f.dx=-nz*sg+nx*.4;f.dz=nx*sg+nz*.4;fhop(f);ex(f,'wow',1);sayc(f,ap?pk(['Waa, kamu ngebut! Minggir!','Eits, awas!']):pk(['Awas, jangan injak aku!','Waa, ada yang jatuh!']),'wow',3);continue}}
+    if(md==='ikut'&&f.mo===PL){   // boleh berubah pikiran di tengah jalan
+      if(evR(L,'bump',4)&&m.g>.25){m.pr=0;sayc(f,'Aduh! Kamu nabrak aku! Aku nggak mau ikut lagi!','angry',1);leave(f,PL,'kesal');continue}
+      if(E.fear>.7){m.pr=0;sayc(f,'Aku takut! Aku pergi dulu!','wow',1);leave(f,PL,'takut');continue}
+      if(E.sleepy>.8||L.en<.22){m.pr=0;sayc(f,'Aku capek banget... aku bobo dulu ya','sad',1);leave(f,PL,'ngantuk');continue}
+      const sd=fol.find(o=>o!==f&&o.L.E.sad>.55&&M(f,o).a>.3&&Math.hypot(o.x-f.x,o.z-f.z)<11&&!o.mode);
+      if(sd&&f.k>5&&Math.random()<.5){m.pr=0;sayc(f,'Temanku sedih, aku temenin dia dulu ya','sad',1);setM(f,'seek',8,sd);continue}
+      if(f.k>18&&E.bored>.6&&L.T.curio>.5){m.pr=0;sayc(f,'Eh, aku berubah pikiran, mau lihat-lihat dulu!','happy',1);f.mode=null;f.mo=null;f.force='curious';f.idl=.2;continue}
+      if(d>16){f.lf=(f.lf||0)+.45;if(f.lf>6&&d>40){m.pr=0;m.a=Math.max(-1,m.a-.05);sayc(f,'Kamu ninggalin aku terus! Aku nyerah!','sad',1);f.mode=null;f.mo=null;f.idl=rr(2,4);continue}else if(f.lf>2)sayc(f,'Tunggu aku!','yell',5)}else f.lf=0}
+    const cm=L.com;   // KOMITMEN: janji ikut/main tidak hilang karena gangguan; dilanjut setelah gangguan selesai
+    if(cm){if(t>cm.until||E.anger>.75||E.sleepy>.85||d>34)L.com=null;
+      else if(f.mode===cm.m){}
+      else if(f.dn===cm.m){L.com=null;f.dn=null}
+      else if(cm.m==='ikut'&&!m.pr)L.com=null;
+      else if(!f.mode&&!(f.hu>0)&&!f.cr&&!f.rv&&t>cm.rt){cm.rt=t+3;if(++cm.n>4)L.com=null;
+        else{sayc(f,pk(['Eh, tadi kan aku diajak! Ayo lanjut!','Maaf, tadi keganggu. Ayo lanjut!']),'happy',1);if(cm.m==='ikut')follow(f,PL,Math.max(8,cm.until-t));else LCA.start(f,cm.m);continue}}}
+    if(L.owe&&t>L.owe&&!md&&E.sleepy<.4&&!called&&d<30){L.owe=0;tk([[f,'Aku udah segar! Tadi janji main, kan? Aku ikut!',0,'happy',PL]]);follow(f,PL,rr(25,35));continue}
+    if(!md&&!(f.hu>0)&&!called&&t>W.next&&t>(L.wcd||0)&&d<26){W.next=t+rr(7,13);spont(f,d)}}}
+// ---- perilaku mode (dipanggil dari lcaMode) ----
+function mode(f,dt,o,dpl){switch(f.mode){
+  case 'ikut':{const o2=f.mo||PL,dx=f.x-o2.x,dz=f.z-o2.z,d=Math.hypot(dx,dz)||1,sp=Math.hypot(o2.vx||0,o2.vz||0),g=f.gap||3;f.k+=dt;
+    if(!o2.pl&&(o2.mode!=='jalan'||o2.mo!==f)){f.mode=null;f.mo=null;f.idl=rr(1,3);return null}   // pemimpin sudah selesai
+    if(f.mt<dt*1.5&&!f.fin){f.fin=1;if(o2.pl){const m=M(f,o2);m.pr=0;m.a=Math.min(1,m.a+.06);f.L.ip=clamp((f.L.ip||0)+(f.L.E.joy-(f.j0||0))*.4+.05,-.4,.4);sayc(f,'Udah ya, aku main sendiri dulu. Makasih udah ajak!','happy',1)}}
+    if(!o2.pl&&d>30){f.mode=null;f.mo=null;f.idl=2;return null}
+    if(o2.pl&&d>35){f.sr=(f.sr||0)+dt;   // kehilangan jejak: cari di posisi terakhir pemain terlihat, lalu menyisir sekitarnya
+      if(f.sr>14||d>90){M(f,o2).pr=0;sayc(f,'Aku nggak bisa nemuin kamu, aku nyerah!','sad',1);f.mode=null;f.mo=null;f.idl=rr(2,4);return null}
+      sayc(f,pk(['Kamu di mana sih? Aku cari ya!','Hei! Kamu ke mana?']),'wow',6);const ls=f.ls||o2;
+      if(Math.hypot(ls.x-f.x,ls.z-f.z)<2.5)f.ls={x:ls.x+rr(-10,10),z:ls.z+rr(-10,10)};
+      return goTo(f,ls.x,ls.z,f.ms*1.5)}else f.sr=0;
+    f.gz=o2;f.gzT=.3;
+    if(!grounded&&f.gr&&o2.pl&&Math.random()<dt*.8)fhop(f);   // ikut loncat
+    if(Math.random()<dt*.03){f.jd=.01;f.sj=1;sayc(f,pk(['Hehe, loncat tinggi!','Aku ikut gaya kamu!']),'happy',8)}
+    if(d>g+1.2){const bx=sp>.5?-o2.vx/sp:dx/d,bz=sp>.5?-o2.vz/sp:dz/d;return goTo(f,o2.x+bx*g,o2.z+bz*g,Math.min(f.ms*(d>g+7?1.6:1.15),sp+3.5+Math.max(0,d-g)*.8))}
+    if(d<g-.9)return[dx/d*1.6,dz/d*1.6];return[0,0]}
+  case 'pergi':{const d=Math.hypot(f.dx-f.x,f.dz-f.z);f.k+=dt;if(d<1.2||f.k>9){endM(f);if(f.af){f.force=f.af;f.idl=.3;f.af=null}return null}return goTo(f,f.dx,f.dz,f.ms*1.15)}
+  case 'ke':{const dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;
+    if(d<3.2){if(!f.ds){f.ds=1;f.mt=Math.min(f.mt,4);ex(f,'happy',1.2);fhop(f);sayc(f,'Aku sudah di sini!','happy',1)}return[0,0]}
+    return goTo(f,pos.x+dx/d*2.2,pos.z+dz/d*2.2,f.ms*1.25)}
+  case 'minggir':{if(f.mt<dt*1.5&&!f.fin){f.fin=1;const p=f.pv;f.pv=null;if(p&&p.m){setM(f,p.m,Math.max(6,p.mt),p.mo);f.fin=0;f.gap=f.gap||3}}
+    return[f.dx*f.ms*1.4,f.dz*f.ms*1.4]}
+  case 'ajakn':{const b=f.mo;if(!b||BUSY[b.mode]>=9||(b.mode==='sleep'&&f.ia!=='tidur')){if(!f.fin){f.fin=1;sayc(f,'Yah, dia lagi sibuk. Yaudah...','sad',1)}endM(f);return null}
+    const dx=b.x-f.x,dz=b.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=b;f.gzT=.3;
+    if(f.ds)return[0,0];if(d<2.4){f.ds=1;resolve(f,b,f.ia);return[0,0]}
+    f.k+=dt;if(f.k>9){sayc(f,'Dia jauh banget, nggak jadi deh','sad',1);endM(f);return null}
+    return icpt(f,b,f.ms*1.15)}
+  case 'jalan':{const q=f.mo;if(!q||q.mode!=='ikut'||q.mo!==f){endM(f);return null}
+    const d=Math.hypot(f.dx-f.x,f.dz-f.z),dq=Math.hypot(q.x-f.x,q.z-f.z);
+    if(d<1.5){ex(f,'happy',1.2);fhop(f);sayc(f,'Sampai! Seru ya jalan bareng!','happy',1);M(f,q).a=Math.min(1,M(f,q).a+.08);M(q,f).a=Math.min(1,M(q,f).a+.08);endM(f);return null}
+    if(dq>7){f.gz=q;f.gzT=.3;return[0,0]}return goTo(f,f.dx,f.dz,f.ms*.8)}
+  case 'pimpin':{const d=Math.hypot(f.dx-f.x,f.dz-f.z);f.k+=dt;f.gz=PL;f.gzT=.3;const m=M(f,PL);
+    if(f.k>24){m.a=Math.max(-1,m.a-.03);f.L.E.sad=Math.min(1,f.L.E.sad+.2);sayc(f,'Kamu nggak mau ikut ya... yaudah','sad',1);endM(f);return null}
+    if(d<1.6){if(dpl<7){m.a=Math.min(1,m.a+.1);f.L.E.joy=Math.min(1,f.L.E.joy+.4);ex(f,'happy',1.5);fhop(f);f.hrt=1.5;sayc(f,'Sampai! Seru kan, kamu ikut!','happy',1)}else{f.L.E.sad=Math.min(1,f.L.E.sad+.2);sayc(f,'Kok aku sendirian di sini...','sad',1)}endM(f);return null}
+    if(dpl>8){if(f.k%6<dt)sayc(f,pk(['Ayo sini, ikut aku!','Tunggu... jangan jauh-jauh!']),'yell',5);return[0,0]}
+    return goTo(f,f.dx,f.dz,f.ms*.75)}
+  }return undefined}
+// ---- AI ASLI (Anthropic / OpenAI / OpenRouter / Gemini / Groq / Ollama) + MIKROFON: NPC mendengar ucapan pemain & membalas dengan bahasanya sendiri ----
+// Keputusan tindakan tetap dari utility AI di atas; Claude hanya menyusun ucapan yang SESUAI keputusan itu (dan aff/mood kecil).
+const AIK='bm_ai_key',DS={ikut:'ikut mengikuti pemain',sini:'datang ke tempat pemain',play:'bermain lari-larian',ajakteman:'mengajak temanmu bergabung'};
+const PV={anthropic:{n:'Anthropic (Claude)',m:'claude-haiku-5-5'},openai:{n:'OpenAI',m:'gpt-4o-mini',u:'https://api.openai.com/v1'},openrouter:{n:'OpenRouter (banyak model)',m:'openai/gpt-4o-mini',u:'https://openrouter.ai/api/v1'},gemini:{n:'Google Gemini',m:'gemini-2.5-flash'},groq:{n:'Groq',m:'llama-3.3-70b-versatile',u:'https://api.groq.com/openai/v1'},custom:{n:'Kustom / Ollama (OpenAI-compatible)',m:'llama3.2',u:'http://localhost:11434/v1'}};
+let KEY='',CFG={p:'anthropic',m:'',u:'',k:{},on:false};
+try{const c=JSON.parse(localStorage.getItem('bm_ai_cfg')||'null');if(c&&PV[c.p]){CFG=c;CFG.k=CFG.k||{}}else{const o=localStorage.getItem(AIK);if(o){CFG.k.anthropic=o;CFG.on=true}}KEY=CFG.k[CFG.p]||''}catch(e){}
+const isOn=()=>CFG.on&&(CFG.p==='custom'||!!KEY);
+const llmM=()=>CFG.m||PV[CFG.p].m;
+function llm(sys,msgs,sig){const p=CFG.p,m=llmM(),J={'content-type':'application/json'};
+  if(p==='anthropic')return fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:sig,headers:Object.assign({},J,{'x-api-key':KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}),body:JSON.stringify({model:m,max_tokens:220,system:sys,messages:msgs})});
+  if(p==='gemini')return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{method:'POST',signal:sig,headers:Object.assign({},J,{'x-goog-api-key':KEY}),body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:msgs.map(x=>({role:x.role==='assistant'?'model':'user',parts:[{text:x.content}]})),generationConfig:{maxOutputTokens:800}})});
+  const u=String(CFG.u||PV[p].u).replace(/\/+$/,''),h=Object.assign({},J);if(KEY)h.authorization='Bearer '+KEY;
+  const b={model:m,messages:[{role:'system',content:sys}].concat(msgs)};if(p==='openai')b.max_completion_tokens=800;else b.max_tokens=300;
+  return fetch(u+'/chat/completions',{method:'POST',signal:sig,headers:h,body:JSON.stringify(b)})}
+const llmT=dt=>CFG.p==='anthropic'?(dt.content||[]).map(c=>c.text||'').join(''):CFG.p==='gemini'?((((dt.candidates||[])[0]||{}).content||{}).parts||[]).map(c=>c.text||'').join(''):((((dt.choices||[])[0]||{}).message||{}).content||'');
+const aib=document.createElement('button');aib.id='aib';document.body.appendChild(aib);
+const aim=document.createElement('div');aim.id='aim';aim.innerHTML='<div><b>AI asli untuk NPC</b><br>Pilih penyedia &amp; model, lalu tempel API key. Disimpan hanya di perangkat ini. Ucapan yang kamu ketik/ucapkan dikirim ke penyedia yang dipilih. Tombol Matikan menghapus key.<select class="pv"></select><input class="md" placeholder="nama model" autocomplete="off"><input class="ur" placeholder="Base URL" autocomplete="off"><input class="ky" type="password" placeholder="API key" autocomplete="off"><button class="sv">Simpan</button> <button class="off">Matikan</button> <button class="cl">Batal</button></div>';document.body.appendChild(aim);
+const aiShow=()=>{const o=isOn();aib.textContent=o?'AI: ON':'AI: OFF';aib.style.background=o?'#7bd88f':'#ffd23f'};aiShow();
+const pvS=aim.querySelector('.pv'),mdI=aim.querySelector('.md'),urI=aim.querySelector('.ur'),kyI=aim.querySelector('.ky');
+Object.keys(PV).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=PV[k].n;pvS.appendChild(o)});
+const pvFill=(p,keep)=>{const d=PV[p],same=keep&&CFG.p===p;mdI.value=(same&&CFG.m)||d.m;urI.value=(same&&CFG.u)||d.u||'';urI.style.display=p==='custom'?'':'none';kyI.value='';kyI.placeholder=CFG.k[p]?'API key tersimpan (kosongkan = tetap)':p==='custom'?'API key (boleh kosong untuk Ollama)':'API key'};
+pvS.addEventListener('change',()=>pvFill(pvS.value,true));
+aib.addEventListener('click',()=>{aim.style.display='flex';pvS.value=CFG.p;pvFill(CFG.p,true)});
+aim.querySelector('.cl').addEventListener('click',()=>{aim.style.display='none'});
+const AIP={anthropic:['Claude','#d97757'],openai:['OpenAI','#10a37f'],openrouter:['OpenRouter','#6467f2'],gemini:['Gemini','#4285f4'],groq:['Groq','#f55036'],custom:['','#9aa0a6']};
+function mkTag(t,col){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.font='800 32px system-ui,sans-serif';const w=Math.min(244,x.measureText(t).width+34),l=128-w/2,r=128+w/2,y0=6,y1=58,k=26;
+  x.beginPath();x.moveTo(l+k,y0);x.arcTo(r,y0,r,y1,k);x.arcTo(r,y1,l,y1,k);x.arcTo(l,y1,l,y0,k);x.arcTo(l,y0,r,y0,k);x.closePath();x.fillStyle=col;x.fill();x.lineWidth=5;x.strokeStyle='#1b1b1b';x.stroke();
+  x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.fillText(t,128,33,236);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,fog:false}));sp.scale.set(1.9,.475,1);return sp}
+// bola ke-6 = bola AI: muncul hanya saat AI aktif, label di atasnya sesuai penyedia (Claude / Gemini / ...)
+function aiBallSync(){const f=ALL.find(o=>o.ai);if(!f||!f.L)return;const on=isOn(),was=fol.includes(f);
+  if(on){const pv=AIP[CFG.p],nmx=pv[0]||llmM();
+    if(!was){const a=rr(0,6.283),r=rr(3.5,5.5);fol.push(f);
+      Object.assign(f,{x:pos.x+Math.sin(a)*r,z:pos.z+Math.cos(a)*r,vx:0,vz:0,h:0,vy:0,gr:true,mode:null,mo:null,bf:null,rv:null,idl:rr(.8,2.5),hu:0,cr:0,jd:0,exT:0,ax:pos.x,az:pos.z});
+      f.g.visible=true;f.shd.visible=true;ping(f)}
+    f.nm=nmx;f.aic=pv[1];f.m.material=toon(0xffffff,dirtTex(pv[1]));
+    if(f.tag){scene.remove(f.tag);f.tag.material.map.dispose();f.tag.material.dispose()}
+    f.tag=mkTag(nmx,pv[1]);f.tag.position.set(f.x,f.h+RF*2+.25,f.z);scene.add(f.tag)}
+  else if(was){fol.splice(fol.indexOf(f),1);
+    fol.forEach(o=>{if(o.mo===f||(o.bf&&(o.bf.a===f||o.bf.b===f))){o.mode=null;o.mo=null;o.bf=null;o.idl=1}if(o.rv===f)o.rv=null});
+    f.mode=null;f.mo=null;f.bf=null;f.rv=null;if(f.L.cs)f.L.cs=null;f.g.visible=false;f.shd.visible=false;if(f.emo)f.emo.visible=false;if(f.L.sy)f.L.sy.visible=false;if(f.tag)f.tag.visible=false;f.g.position.set(0,-999,0)}}
+setTimeout(aiBallSync,0);
+const cfgSave=()=>{KEY=CFG.k[CFG.p]||'';try{localStorage.setItem('bm_ai_cfg',JSON.stringify(CFG))}catch(e){}aim.style.display='none';aiShow();aiBallSync()};
+aim.querySelector('.sv').addEventListener('click',()=>{const p=pvS.value,d=PV[p],k=kyI.value.trim();CFG.p=p;CFG.m=mdI.value.trim()||d.m;CFG.u=p==='custom'?(urI.value.trim()||d.u):'';if(k)CFG.k[p]=k;CFG.on=p==='custom'||!!CFG.k[p];cfgSave()});
+aim.querySelector('.off').addEventListener('click',()=>{const p=pvS.value;CFG.p=p;delete CFG.k[p];CFG.on=false;cfgSave()});
+['keydown','keyup'].forEach(t=>aim.addEventListener(t,e=>e.stopPropagation()));
+const QTe=document.getElementById('qt'),SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(QTe&&SR){const mic=document.createElement('button');mic.id='qm';mic.textContent='🎤';QTe.appendChild(mic);
+  mic.addEventListener('pointerdown',e=>{e.preventDefault();const r=new SR();r.lang='id-ID';r.interimResults=false;mic.textContent='…';
+    r.onresult=ev=>{QTe.firstChild.value=ev.results[0][0].transcript;QTe.querySelector('button').dispatchEvent(new Event('pointerdown'))};
+    r.onend=r.onerror=()=>{mic.textContent='🎤'};try{r.start()}catch(x){mic.textContent='🎤'}})}
+function playInv(f){const d=decide(f,PL,'x');return{yes:d.yes,rs:d.rs,e:d.yes?'happy':'sad',go(){if(d.yes){const g=pk(['kejarpl','tiru','tantang']);LCA.start(f,g);commit(f,g,26)}else{M(f,PL).rf=(M(f,PL).rf||0)+1;leave(f,PL,d.rs)}}}}
+const aiOn=isOn;
+async function ai(f,v){try{
+  const L=f.L,E=L.E,m=M(f,PL),k=parse(v),inv=(k==='ikut'||k==='sini'||k==='ajakteman')?invite(f,k):(k==='play'?playInv(f):null);
+  const mood=E.anger>.3?'kesal':E.sad>.3?'sedih':E.fear>.3?'takut':E.sleepy>.5?'ngantuk':E.joy>.4?'senang':E.bored>.5?'bosan':'santai';
+  const ev=L.ev.filter(e=>NOW()-e.t<90).map(e=>({bump:'ditabrak',left:'ditinggal pas ngobrol',brawl:'habis berantem'}[e.k]||e.k)).join(', ')||'-';
+  const sys='Kamu '+wn(f)+', bola kecil lucu di game 3D (kepribadian: '+PT[f.pi%5].n+'). Bicara bahasa Indonesia santai ala anak kecil, 1-2 kalimat pendek (maks 18 kata), boleh lucu/absurd. Jangan pernah bilang kamu AI/model. Tetap sesuai kepribadian dan suasana hatimu. Keadaanmu: suasana hati '+mood+', energi '+Math.round(L.en*100)+'%, hubungan dengan pemain (bola merah besar): '+LCA.rel(f,PL)+' (kedekatan '+m.a.toFixed(2)+', kekesalan '+m.g.toFixed(2)+'), sedang: '+(f.mode||'santai')+', kejadian terakhir: '+ev+(L.lr&&NOW()-L.lr.t<180?', tadi pergi karena: '+LR[L.lr.rs]:'')+'. Balas HANYA JSON: {"say":"...","emo":"happy|sad|angry|wow|none","aff":angka -0.1 sampai 0.1,"act":"none|stop"}. act "stop" hanya bila pemain minta kamu berhenti mengikutinya.';
+  let u='Pemain berkata: "'+v.slice(0,80)+'"';
+  if(inv){const yes=inv.e==='happy';u+='\nPemain mengajakmu '+DS[k]+'. KEPUTUSANMU SUDAH FINAL: '+(yes?'MENERIMA':'MENOLAK'+(inv.rs?' ('+LR[inv.rs]+')':''))+'. Ucapkan sesuai keputusan itu dengan kata-katamu sendiri.'}
+  const ah=f.ah||(f.ah=[]),msgs=ah.concat([{role:'user',content:u}]),ac=new AbortController(),to=setTimeout(()=>ac.abort(),15000);
+  const res=await llm(sys,msgs,ac.signal);
+  clearTimeout(to);if(!res.ok){aib.textContent='AI: ⚠ '+res.status;return null}
+  const dt=await res.json(),tx=llmT(dt),mt=tx.match(/\{[\s\S]*\}/);if(!mt)return null;
+  const j=JSON.parse(mt[0]),say=String(j.say||'').slice(0,140);if(!say)return null;
+  ah.push({role:'user',content:u},{role:'assistant',content:mt[0]});while(ah.length>8)ah.shift();
+  m.a=clamp(m.a+clamp(+j.aff||0,-.1,.1),-1,1);
+  const e={happy:'happy',sad:'sad',angry:'angry',wow:'wow'}[j.emo]||(inv?inv.e:null);
+  return{say,e,go:inv?inv.go:null,act:(!inv&&j.act==='stop')?()=>reply(f,'stop').go():null}}catch(x){return null}}
+return{invite,follow,leave,decide,global,mode,commit,parse,reply,ai,aiOn}})();
+window.WILL=WILL;window.WILLMODE=WILL.mode;
+window.__lca=LCA.debug;window.__lcaTeach=LCA.teach;
+
+// ---- perilaku mode baru LCA (dipanggil dari switch fBehave) ----
+function lcaMode(f,dt,o,dpl){
+  switch(f.mode){
+    case 'talkpl':{const dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz)||1,cs=f.L.cs;f.gz=PL;f.gzT=.3;
+      if(f.gr&&Math.random()<dt*.15)f.jd=.01;
+      if(cs&&!cs.arm&&d>3.6)return goTo(f,pos.x+dx/d*3,pos.z+dz/d*3,f.ms*.9);
+      if(d<1.6)return goTo(f,pos.x+dx/d*2,pos.z+dz/d*2,2);return[0,0]}
+    case 'backwalk':{f.k-=dt;if(f.k<=0){f.k=rr(.6,1.4);f.ang+=rr(-1.1,1.1);if(dpl>16)f.ang=Math.atan2(pos.x-f.x,pos.z-f.z)}return[Math.sin(f.ang)*3.2,Math.cos(f.ang)*3.2]}
+    case 'shadow':{f.ang+=dt*7;return goTo(f,f.cx+Math.cos(f.ang)*.75,f.cz+Math.sin(f.ang)*.75,9)}
+    case 'freeze':f.gz=null;return[0,0];
+    case 'gazepl':{const dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;f.k+=dt;
+      return d>3.4?goTo(f,pos.x+dx/d*3,pos.z+dz/d*3,f.ms*.8):[0,0]}
+    case 'followpl':{const sp=Math.hypot(vel.x,vel.z),dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz)||1,bx=sp>.5?-vel.x/sp:dx/d,bz=sp>.5?-vel.z/sp:dz/d;
+      if(f.gr&&(f.hs-=dt)<=0){f.hs=rr(1,2);if(Math.random()<.4)f.jd=.01}
+      return goTo(f,pos.x+vel.x*.35+bx*2.6,pos.z+vel.z*.35+bz*2.6,Math.min(f.ms*1.2,sp+3))}
+    case 'hidebehind':{const th=(f.L.avoid&&performance.now()*.001-f.L.avT<4)?f.L.avoid:PL,dx=o.x-th.x,dz=o.z-th.z,d=Math.hypot(dx,dz)||1;
+      f.gz=th;f.gzT=.3;if(!(f.exT>0)&&Math.random()<dt)ex(f,'hide',.5);
+      return goTo(f,o.x+dx/d*(RF*2+.25),o.z+dz/d*(RF*2+.25),f.ms*1.1)}
+    case 'dash':{const c=Math.floor(f.k/1.4);if(f.ds!==c+1){f.ds=c+1;f.ang=dpl>14?Math.atan2(pos.x-f.x,pos.z-f.z):rr(0,6.283)}
+      f.k+=dt;const ph=f.k-c*1.4;if(ph<.7)return[Math.sin(f.ang)*f.ms*1.7,Math.cos(f.ang)*f.ms*1.7];if(ph<.8)ex(f,'wow',.5);return[0,0]}
+    case 'gaze':{const gp=f.L.gp;if(!gp){endM(f);return null}const dx=gp.x-f.x,dz=gp.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=gp;f.gzT=.3;
+      return d>3.6?goTo(f,gp.x-dx/d*3.2,gp.z-dz/d*3.2,4.2):[0,0]}
+    case 'attn':{const tx=pos.x+Math.sin(heading)*3.4,tz=pos.z+Math.cos(heading)*3.4;f.gz=PL;f.gzT=.3;
+      if(Math.hypot(tx-f.x,tz-f.z)<1.2&&f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=rr(.5,.9);ex(f,'happy',.8)}
+      return goTo(f,tx,tz,f.ms)}
+    case 'poke':{const dx=pos.x-f.x,dz=pos.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;
+      if(!f.ds){if(d<R+RF+.25){f.ds=1;f.k=0;sqv=-2.5;f.vx-=dx/d*2;f.vz-=dz/d*2;fhop(f);ex(f,'happy',1);LCA.S(f,'poke_hit',1);return[0,0]}   // colek lembut (pemain tidak terdorong)
+        return goTo(f,pos.x-dx/d*(R+RF),pos.z-dz/d*(R+RF),f.ms*.9)}
+      f.k+=dt;if(f.ds===1&&f.k>1.6){f.ds=2;f.k=0;ex(f,'wow',1);LCA.S(f,'poke_ask',1)}if(f.ds===2&&f.k>1.8)endM(f);return[0,0]}
+    case 'prank':{const pl=!!o.pl,hg=pl?heading:o.hd,ox=o.x,oz=o.z,d=Math.hypot(ox-f.x,oz-f.z)||1,nx=(ox-f.x)/d,nz=(oz-f.z)/d;f.gz=o;f.gzT=.3;
+      if(!f.ds){const tx=ox-Math.sin(hg)*1.3,tz=oz-Math.cos(hg)*1.3;if(d<1.5||Math.hypot(tx-f.x,tz-f.z)<.5){f.ds=1;f.k=0;ex(f,'happy',.6)}return goTo(f,tx,tz,2.4)}   // mengendap dari belakang
+      f.k+=dt;
+      if(f.ds===1&&f.k>.45){f.ds=2;f.k=0;   // senggol jail
+        if(pl){sqv=-2.5}else{o.vx+=nx*3.2;o.vz+=nz*3.2;o.sqv=-2;ex(o,'wow',1);if(o.gr)o.jd=.01;o.gz=f;o.gzT=1.5}
+        f.vx-=nx*2;f.vz-=nz*2;fhop(f);ex(f,'yell',.8);if(pl)LCA.S(f,'prank_hit',1);else LCA.talk([[f,LCA.pk(['Dor!','Colek!','Hehe, kena!']),0,'yell'],[o,LCA.pk(['Waaa! Kaget!','Ih, kamu jail!','Hei! Siapa itu?']),1.6,'wow']])}
+      else if(f.ds===2&&f.k>.9){f.ds=3;f.k=0;if(pl)LCA.S(f,'prank_sorry',1);else LCA.talk([[f,LCA.pk(['Maaf ya, becanda!','Jangan marah ya, hehe']),0,'happy'],[o,o.L.T.temper>.7?LCA.pk(['Awas ya kamu!','Hmph! Kali ini kumaafkan']):LCA.pk(['Iya deh, lucu juga hehe','Dasar jail! Tapi nggak apa-apa','Hihi, iya nggak marah']),2.1],[f,LCA.pk(['Temenan lagi ya?','Kita kan teman!']),4.2,'happy']]);f.hrt=1.5;ex(f,'happy',1.2);   // lalu minta maaf
+        const m0=f.L.mem[pl?'P':o.id];if(m0)m0.ob=(m0.ob||0)*.4;
+        if(!pl){const mo=LCA.M(o,f);mo.a=Math.min(1,mo.a+.12);mo.g*=.5;
+          if(o.L.T.temper>.7&&Math.random()<.35)o.rv=f;else if(!o.mode||o.mode==='sleep'||o.mode==='stroll'){setM(o,'laugh',rr(1.5,2.5),f);ex(o,'happy',1.5)}}}
+      else if(f.ds===3&&f.k>1.2)endM(f);
+      return[0,0]}
+    case 'sulk':{f.gz={x:f.x*2-o.x,z:f.z*2-o.z};f.gzT=.3;if(!f.ds)f.ds=Math.random()<.5?1:2;ex(f,f.ds===1?'angry':'sad',.3);
+      for(const q of fol){if(q===f||q===o||q.mode==='brawl')continue;const m=f.L.mem[q.id];if(m&&m.a>.3&&Math.hypot(q.x-f.x,q.z-f.z)<3.2){f.mt=Math.min(f.mt,.2);break}}   // dihibur teman -> luluh
+      return[0,0]}
+    case 'nest':{const sp=f.L.gp;if(!sp){endM(f);return null}if(Math.hypot(sp.x-f.x,sp.z-f.z)<.8){const np=f.L.nap;setM(f,'sleep',np?rr(14,24):rr(4,7));f.nz=np;f.L.nap=0;return[0,0]}return goTo(f,sp.x,sp.z,3)}
+    case 'defend':{const v=f.L.fr;if(!v||!(o.mode==='chase'||o.mode==='ram'||o.mode==='revenge'||o.mode==='sneak')||o.mo!==v){endM(f);return null}
+      if(!f.ds){f.ds=1;LCA.M(v,f).a=Math.min(1,LCA.M(v,f).a+.25);LCA.M(f,o).g=Math.min(1,LCA.M(f,o).g+.15);v.L.E.joy=Math.min(1,v.L.E.joy+.3);f.L.E.pride=Math.min(1,f.L.E.pride+.5)}
+      const dx=o.x-v.x,dz=o.z-v.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;return goTo(f,v.x+dx/d*(RF*2+.25),v.z+dz/d*(RF*2+.25),f.ms*1.3)}
+    case 'chat':{const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;
+      if(d>3)return goTo(f,o.x+dx/d*2.2,o.z+dz/d*2.2,f.ms*.8);
+      if(d<1.4)return goTo(f,o.x+dx/d*2,o.z+dz/d*2,2);
+      if(f.gr&&Math.random()<dt*.15)f.jd=.01;return[0,0]}
+    case 'tiru':{const sp=Math.hypot(vel.x,vel.z),dx=pos.x-f.x,dz=pos.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;   // meniru gerakan & loncatan pemain
+      if(grounded)f.ds=0;else if(f.gr&&!f.ds){f.ds=1;f.jd=.01;ex(f,'yell',.6)}
+      if(sp<1)return d>4.5?goTo(f,pos.x-dx/d*3.5,pos.z-dz/d*3.5,f.ms*.8):[0,0];
+      const k=Math.min(1,f.ms*1.2/sp);let vx=vel.x*k,vz=vel.z*k;if(d>6){vx+=dx/d*2.5;vz+=dz/d*2.5}else if(d<2.4){vx-=dx/d*2;vz-=dz/d*2}return[vx,vz]}
+    case 'kejarpl':{const dx=pos.x-f.x,dz=pos.z-f.z,d=Math.hypot(dx,dz)||1,nx=dx/d,nz=dz/d;f.gz=PL;f.gzT=.3;   // kejar-kejaran: colek pemain lalu kabur
+      if(f.ds===0){if(d<R+RF+.3){f.ds=1;f.k=0;sqv=-2.5;fhop(f);ex(f,'yell',1);LCA.S(f,'tg_kena',1);return[-nx*3,-nz*3]}
+        return goTo(f,pos.x-nx*(R+RF),pos.z-nz*(R+RF),f.ms)}
+      if(f.ds===1){f.k+=dt;
+        if(d<R+RF+.2&&f.k>.5){f.ds=2;f.k=0;ex(f,'happy',1.6);fhop(f);f.hrt=1.5;const m=LCA.M(f,PL);m.a=Math.min(1,m.a+.12);f.L.E.joy=Math.min(1,f.L.E.joy+.4);LCA.S(f,'tg_caught',1);return[0,0]}
+        if(f.mt<1.2&&!f.hs){f.hs=1;ex(f,'yell',1);fhop(f);LCA.S(f,'tg_win',1)}
+        const z=Math.sin(f.k*5)*.9;let vx=-nx+nz*z,vz=-nz-nx*z;if(d>10){vx=nx;vz=nz}
+        const l=Math.hypot(vx,vz)||1,s=d>7?f.ms*.35:f.ms;return[vx/l*s,vz/l*s]}
+      f.k+=dt;if(f.k>1.4)endM(f);return[0,0]}
+    case 'tantang':{const dx=pos.x-f.x,dz=pos.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=PL;f.gzT=.3;   // tantang pemain loncat
+      if(f.ds===0){f.k+=dt;if(f.k>6){endM(f);return null}if(d>4.2)return goTo(f,pos.x-dx/d*3.6,pos.z-dz/d*3.6,f.ms);f.ds=1;f.k=0;f.hs=0;ex(f,'yell',1);LCA.S(f,'tt_ask',1)}
+      if(f.ds===1){f.k+=dt;if(f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=.55}if(f.k>1.9){f.ds=2;f.k=0}return[0,0]}
+      if(f.ds===2){f.k+=dt;if(!(f.exT>0))ex(f,'wow',.3);
+        if(!grounded){f.ds=3;f.k=0;f.hs=0;fhop(f);ex(f,'happy',2);f.hrt=2;const m=LCA.M(f,PL);m.a=Math.min(1,m.a+.15);f.L.E.joy=Math.min(1,f.L.E.joy+.4);LCA.S(f,'tt_ok',1)}
+        else if(f.k>5.5){f.ds=4;f.k=0;ex(f,'sad',2);LCA.S(f,'tt_no',1)}return[0,0]}
+      f.k+=dt;if(f.ds===3&&f.gr&&(f.hs-=dt)<=0){f.jd=.01;f.hs=.4}if(f.k>(f.ds===3?2:1.8))endM(f);return[0,0]}
+    case 'seek':{const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1;f.gz=o;f.gzT=.3;
+      if(d<2.6){if(!f.ds){f.ds=1;ex(f,'happy',1.5);fhop(f);f.hrt=1}return[0,0]}
+      return goTo(f,o.x-dx/d*2,o.z-dz/d*2,f.ms*.9)}
+  }
+  if(window.WILLMODE){const wr=window.WILLMODE(f,dt,o,dpl);if(wr!==undefined)return wr}
+  return undefined}
+
+// ===== NAVIGASI PINTAR: antisipasi tabrakan, menyingkir sebelum kena, tidak menumpuk di tepi, dan mencegat target yang bergerak =====
+const AVM={_:1,stroll:1,curious:1,dash:1,zoom:1,backwalk:1,gaze:1,flee:1,watch:1,inspect:1};   // hanya saat bergerak biasa; mode sengaja (kejar, peluk, berantem, dll) tidak menghindar
+AVM.ikut=1;AVM.pergi=1;AVM.jalan=1;AVM.ajakn=1;AVM.ke=1;AVM.pimpin=1;
+function dodge(f,vx0,vz0){
+  let sp=Math.hypot(vx0,vz0),ox=0,oz=0;
+  const pr=Math.hypot(f.x,f.z);if(pr>MAP-9){const k=(pr-(MAP-9))*.9;ox-=f.x/pr*k;oz-=f.z/pr*k}
+  if(sp<=.8)return[vx0+ox,vz0+oz];
+  const px=-vz0/sp,pz=vx0/sp,T=[],lz=1-.4*f.L.T.lazy;
+  if(h<1.2)T.push([PL,pos.x,pos.z,vel.x,vel.z,R]);
+  fol.forEach(o=>{if(o!==f&&Math.abs(f.h-o.h)<RF*1.5)T.push([o,o.x,o.z,o.vx,o.vz,RF])});
+  for(const [o,bx,bz,bvx,bvz,br] of T){if(o===f.mo)continue;
+    const rx=bx-f.x,rz=bz-f.z,wx=vx0-bvx,wz=vz0-bvz,w2=wx*wx+wz*wz;if(w2<.4)continue;
+    const tc=clamp((rx*wx+rz*wz)/w2,0,.9);if(tc<=0)continue;   // titik terdekat dalam <0,9 detik
+    const cx=rx-wx*tc,cz=rz-wz*tc,md=Math.hypot(cx,cz),nd=RF+br+.3;
+    if(md<nd){const s=cx*px+cz*pz,sg=Math.abs(s)>.05?(s>0?-1:1):(f.id%2?1:-1),k=(1-md/nd)*(1.2-tc)*sp*1.3*lz;ox+=px*sg*k;oz+=pz*sg*k}}
+  const nx=vx0+ox,nz=vz0+oz,nl=Math.hypot(nx,nz)||1;return[nx/nl*sp,nz/nl*sp]}
+function icpt(f,o,sp){const dx=o.x-f.x,dz=o.z-f.z,d=Math.hypot(dx,dz)||1,tl=Math.min(.7,d/sp),lx=dx+o.vx*tl,lz=dz+o.vz*tl,ld=Math.hypot(lx,lz)||1;return[lx/ld*sp,lz/ld*sp]}
+
+function updateFollowers(dt){
+  fol.forEach((f,i)=>{
+    LCA.tick(f,i,dt);let dvx=0,dvz=0;const bz=fBehave(f,i,dt);
+    if(bz){dvx=bz[0];dvz=bz[1]}
+    else if(called){
+      const dpl=Math.hypot(pos.x-f.x,pos.z-f.z),tg=fTarget(f,dt,dpl),cu=fFar(f,dt,dpl),
+        tx=tg[0],tz=tg[1],dx=tx-f.x,dz=tz-f.z,d=Math.hypot(dx,dz);
+      if(d>.25&&(f.ps<=0||dpl>9)){const sp2=Math.min(d*2.2,f.ms*cu,15);dvx=dx/d*sp2;dvz=dz/d*sp2}
+    }
+    if(AVM[f.mode||'_']&&!(f.hu>0)){const a=dodge(f,dvx,dvz);dvx=a[0];dvz=a[1]}
+    {const sm=LCA.sm(f);dvx*=sm;dvz*=sm}const pvx=f.vx,pvz=f.vz,k=1-Math.exp(-8*dt);f.vx+=(dvx-f.vx)*k;f.vz+=(dvz-f.vz)*k;
+    f.x+=f.vx*dt;f.z+=f.vz*dt;
+    // jangan saling tabrak
+    if(h<1){const dx=f.x-pos.x,dz=f.z-pos.z,d=Math.hypot(dx,dz),mn=R+RF;
+      if(d<mn&&d>.001){const nx=dx/d,nz=dz/d,pa=vel.x*nx+vel.z*nz,fa=-(f.vx*nx+f.vz*nz);f.x=pos.x+nx*mn;f.z=pos.z+nz*mn;if(pa>fa+.3&&pa>1.5)fBump(f,nx,nz,pa,PL)}}
+    fol.forEach((o,j)=>{if(j===i||Math.abs(f.h-o.h)>RF*1.5)return;const dx=f.x-o.x,dz=f.z-o.z,d=Math.hypot(dx,dz),mn=RF*2;
+      if(d<mn&&d>.001){const nx=dx/d,nz=dz/d,oa=o.vx*nx+o.vz*nz,fa=-(f.vx*nx+f.vz*nz);if(oa>fa+.3){f.x+=nx*(mn-d);f.z+=nz*(mn-d);if(oa>1.5)fBump(f,nx,nz,oa,o)}else if(fa>oa+.3){}else{const p=(mn-d)*.5;f.x+=nx*p;f.z+=nz*p}}});
+    const pr=Math.hypot(f.x,f.z);if(pr>MAP){f.x*=MAP/pr;f.z*=MAP/pr}
+    if(f.mode==='balloon'&&f.k>1.2){f.gr=false;f.vy=(f.h>6?0:1.4)+26*dt}
+    // loncat
+    if(f.jd>0){f.jd-=dt;if(f.jd<=0&&f.gr){f.vy=9.5*PT[f.pi].jv*(f.sj?1.45:1);f.sj=0;f.gr=false;f.sqv=-3.5;fTakeoff(f)}}
+    if(!f.gr){f.vy-=26*dt;f.h+=f.vy*dt;
+      if(f.h<=0){f.h=0;const imp=-f.vy;f.vy=0;f.gr=true;f.sqv=Math.min(imp,14)*.45;fLand(f,imp)}}
+    if(f.mode==='stack'&&f.ds&&f.mo){const o=f.mo,top=o.h+RF*1.9,kk=Math.min(1,dt*12);f.x+=(o.x-f.x)*kk;f.z+=(o.z-f.z)*kk;if(f.vy<=0&&(f.h<=top||f.gr)){f.h=top;f.vy=0;f.gr=true}}
+    else if(f.gr&&f.h>0)f.gr=false;
+    {const it=f.mode==='balloon'?Math.min(1.9,1+f.k*.75):1,ci=f.inf||1;f.inf=ci+(it-ci)*Math.min(1,dt*(it<ci?20:6))}
+    f.sqv+=(-120*f.sq-9*f.sqv)*dt;f.sq=clamp(f.sq+f.sqv*dt,-.4,.5);
+    const spd=Math.hypot(f.vx,f.vz);fDust(f,dt,spd,Math.hypot(f.vx-pvx,f.vz-pvz)/Math.max(dt,.001));
+    if(f.hrt>0)f.hrt-=dt;
+    if(f.gr&&spd>6.5&&!(f.hu>0)&&f.mode!=='leap'&&f.mode!=='brawl'&&Math.random()<dt*.05){f.hu=.8;f.vy=4;f.gr=false;f.sqv=-3;f.vx*=.5;f.vz*=.5;if(Math.random()<.5)f.cr=1}
+    const sy=clamp(1-f.sq+(f.gr?0:clamp(Math.abs(f.vy)*.015,0,.15)),.5,1.6)*fPose(f),sxz=1/Math.sqrt(sy);
+    f.g.position.set(f.x,f.h+R*FS*sy*f.inf,f.z);f.g.scale.set(FS*sxz*f.inf,FS*sy*f.inf,FS*sxz*f.inf);
+    f.g.rotation.set(f.vz*.02,0,-f.vx*.02+fWob(f));f.g.position.x+=fJit(f);if(f.ai&&f.tag)f.tag.position.set(f.x,f.h+RF*2+.25,f.z);
+    if(f.gzT>0)f.gzT-=dt;const gt=f.gzT>0&&f.gz;const th=spd>.5?(f.mode==='backwalk'?Math.atan2(-f.vx,-f.vz):Math.atan2(f.vx,f.vz)):gt?Math.atan2(f.gz.x-f.x,f.gz.z-f.z):Math.atan2(pos.x-f.x,pos.z-f.z)+f.lk;
+    let dd=th-f.hd;dd=Math.atan2(Math.sin(dd),Math.cos(dd));if(f.mode==='spin'||(f.mode==='showoff'&&!f.gr))f.hd+=dt*14;else f.hd+=dd*(1-Math.exp(-(spd>.5?12:4)*dt));
+    f.ey.rotation.y=f.hd+(f.ex==='dizzy'&&f.exT>0?Math.sin(performance.now()*.006)*.5:0);
+    f.bt-=dt;if(f.bt<=0){f.bp=.15;f.bt=2+Math.random()*3}
+    let by=1;if(f.bp>0){f.bp-=dt;by=.1}const hurt=f.hu>0;if(hurt)f.hu-=dt;fFace(f,by,hurt,dt);f.ch.forEach(c=>c.visible=hurt||(f.exT>0&&f.ex==='hide'));
+    if(spd>.05){axis.set(f.vz,0,-f.vx).normalize();q.setFromAxisAngle(axis,spd*dt/RF);f.m.quaternion.premultiply(q).normalize()}
+    f.shd.position.set(f.x,.02,f.z);f.shd.scale.setScalar(FS*sxz/(1+f.h*.35));f.shd.material.opacity=.28/(1+f.h*.3);fEmote(f);LCA.bubble(f,dt);
+  });
+}
+
+// ===== IKON TERBANG: ucapan = benda yang melayang dari pengirim ke penerima, berjejak, mendarat dengan cincin & percikan =====
+const ICN=[];for(let i=0;i<120;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,depthTest:false,fog:false,opacity:0}));sp.renderOrder=20;sp.visible=false;scene.add(sp);ICN.push({s:sp,on:0,mode:0,t:0,dur:1})}
+let icnI=0;
+const TINT={hrt:0xff6fa8,ang:0xff4b3e,'!':0xffc933,'?':0x4cc9f0,Z:0xb9b4ff,spark:0xffe066};
+const fpos=o=>[o.x,o.h+RF*2.1*(o.inf||1)+.15,o.z],tpos=o=>o.pl?[pos.x,h+R*2.1,pos.z]:[o.x,o.h+RF*2.2*(o.inf||1),o.z];
+const eob=x=>1+2.7*Math.pow(x-1,3)+1.7*Math.pow(x-1,2);
+const icnNext=k=>{const p=ICN[icnI];icnI=(icnI+1)%ICN.length;const m=p.s.material;m.map=EMO[k];m.color.set(0xffffff);m.rotation=0;m.opacity=1;m.needsUpdate=true;p.k=k;p.t=0;p.on=1;p.tr=0;p.sp=0;p.s.visible=true;return p};
+function fly(f,k,to){
+  const a=fpos(f);f.sqv=-2;
+  if(k==='Z'){for(let i=0;i<3;i++){const p=icnNext('Z');p.mode=3;p.dur=2.2;p.x=a[0]+i*.12;p.y=a[1]+i*.14;p.z=a[2];p.dx=.25+i*.12;p.t=-i*.45;p.z2=.34+i*.1;p.s.visible=false}return}
+  const p=icnNext(k);
+  if(!to){p.mode=3;p.dur=1.1;p.x=a[0];p.y=a[1];p.z=a[2];p.dx=rr(-.3,.3);p.z2=.45;return}
+  const e=tpos(to),d=Math.hypot(e[0]-a[0],e[2]-a[2]);
+  p.mode=1;p.f=f;p.to=to;p.sx=a[0];p.sy=a[1];p.sz=a[2];p.dur=clamp(d/((k==='ang'||k==='!')?12:7),.4,1.5);p.arc=k==='hrt'?1.1:k==='?'?1.4:.5;p.s.position.set(a[0],a[1],a[2])}
+function bits(k,e,n){for(let i=0;i<n;i++){const p=icnNext(k),an=rr(0,6.283),v=rr(.8,1.8);p.mode=4;p.dur=rr(.5,.8);
+  p.vx=Math.cos(an)*v;p.vz=Math.sin(an)*v;p.vy=k==='hrt'?rr(.8,1.4):rr(.7,1.5);p.sp=rr(-4,4);p.s.position.set(e[0],e[1],e[2]);p.s.scale.setScalar(.2)}}
+function ring(e,col,sz){const p=icnNext('ring');p.mode=6;p.dur=.4;p.z2=sz||1.1;p.s.material.color.set(col);p.s.position.set(e[0],e[1],e[2]);p.s.scale.setScalar(.2)}
+function ping(f){const e=[f.x,f.h+RF*(f.inf||1),f.z];ring(e,0xffffff,1.3);bits('spark',e,6)}
+function land(p,e){
+  const to=p.to,k=p.k;p.mode=2;p.t=0;p.dur=.3;p.s.position.set(e[0],e[1],e[2]);
+  if(to.pl)sqv=-2.5;
+  else{to.sqv=-2.5;to.gz=p.f;to.gzT=1.2;
+    if(k==='hrt')to.hrt=1.4;
+    else if((k==='!'||k==='ang')&&to.mode!=='brawl'&&!(to.exT>.3))ex(to,'wow',.7);
+    if(to.gr&&to.mode!=='brawl'&&k!=='?'&&Math.random()<.4)to.jd=.01}
+  ring(e,TINT[k]||0xffffff,1.1);bits(k,e,k==='hrt'?4:3);bits('spark',e,3)}
+function updateIcons(dt){
+  for(const p of ICN){if(!p.on)continue;p.t+=dt;const m=p.s.material;
+    if(p.t<0){p.s.visible=false;continue}p.s.visible=true;const u=Math.min(1,p.t/p.dur);
+    if(p.mode===1){
+      const e=tpos(p.to),ez=u*u*(3-2*u);
+      let x=p.sx+(e[0]-p.sx)*ez,z=p.sz+(e[2]-p.sz)*ez;const y=p.sy+(e[1]-p.sy)*ez+Math.sin(u*Math.PI)*p.arc;
+      if(p.k==='ang'){x+=Math.sin(p.t*60)*.05;z+=Math.cos(p.t*55)*.05;m.rotation=Math.sin(p.t*50)*.2}
+      else if(p.k==='hrt'){x+=Math.sin(p.t*9)*.12;m.rotation=Math.sin(p.t*8)*.25}
+      else if(p.k==='?')m.rotation=Math.sin(p.t*10)*.4;
+      p.s.position.set(x,y,z);const s0=.25+.4*eob(Math.min(1,p.t*5)),pl=p.k==='hrt'?1+.12*Math.sin(p.t*14):1;
+      p.s.scale.set(s0*pl*(p.k==='!'?.85:1),s0*pl*(p.k==='!'?1.15:1),1);m.opacity=1;
+      p.tr+=dt;if(p.tr>.045){p.tr=0;const q=icnNext(p.k);q.mode=5;q.dur=.35;q.z2=p.s.scale.x*.8;q.s.material.opacity=.5;q.s.material.rotation=m.rotation;q.s.position.copy(p.s.position);q.s.scale.copy(p.s.scale)}
+      if(u>=1)land(p,e)}
+    else if(p.mode===2){p.s.position.y+=dt*.6;p.s.scale.setScalar(.65+u*.5);m.opacity=1-u;if(u>=1)p.on=0}
+    else if(p.mode===3){p.s.position.set(p.x+Math.sin(p.t*3)*.15+p.dx*u,p.y+u*(p.k==='Z'?1.1:.7),p.z);
+      p.s.scale.setScalar(p.z2*eob(Math.min(1,p.t*4))+.04*Math.sin(p.t*6));m.rotation=Math.sin(p.t*3+p.dx*5)*.2;m.opacity=u<.7?1:1-(u-.7)/.3;if(u>=1)p.on=0}
+    else if(p.mode===4){p.vy+=(p.k==='hrt'?.5:-3)*dt;const q=p.s.position;q.x+=p.vx*dt;q.y+=p.vy*dt;q.z+=p.vz*dt;m.rotation+=p.sp*dt;p.s.scale.setScalar(.2*(1-.3*u));m.opacity=1-u;if(u>=1)p.on=0}
+    else if(p.mode===5){p.s.scale.setScalar(p.z2*(1-u*.6));m.opacity=.5*(1-u);if(u>=1)p.on=0}
+    else if(p.mode===6){p.s.scale.setScalar(.2+(p.z2-.2)*(1-Math.pow(1-u,2)));m.opacity=.9*(1-u);if(u>=1)p.on=0}
+    if(!p.on){p.s.visible=false;m.opacity=0}}}
+// ketuk bola kecil = menyapa / mengganggu; ia membalas lewat ikon
+const rc=new THREE.Raycaster(),mv2=new THREE.Vector2();let tdn=null;
+cv.addEventListener('pointerdown',e=>{tdn={x:e.clientX,y:e.clientY,t:performance.now(),n:pts.size}});
+cv.addEventListener('pointerup',e=>{if(!tdn)return;const d=Math.hypot(e.clientX-tdn.x,e.clientY-tdn.y),ms=performance.now()-tdn.t,one=tdn.n<=1;tdn=null;if(d>8||ms>400||!one)return;
+  mv2.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);rc.setFromCamera(mv2,cam);
+  const hit=rc.intersectObjects(fol.map(f=>f.g),true)[0];if(!hit)return;let o=hit.object;while(o&&!fol.some(f=>f.g===o))o=o.parent;
+  const f=o&&fol.find(q=>q.g===o);if(f)LCA.tap(f)});
+
+function loop(){
+  requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);
+  let ix=jx+((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0);
+  let iy=jy+((keys.KeyW||keys.ArrowUp)?1:0)-((keys.KeyS||keys.ArrowDown)?1:0);
+  const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
+  const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
+  const tx=(fx*iy+rx*ix)*7,tz=(fz*iy+rz*ix)*7,k=1-Math.exp(-(grounded?12:4)*dt);
+  const pvx=vel.x,pvz=vel.z;vel.x+=(tx-vel.x)*k;vel.z+=(tz-vel.z)*k;
+  const acc=Math.hypot(vel.x-pvx,vel.z-pvz)/Math.max(dt,.001);
+  pos.x+=vel.x*dt;pos.z+=vel.z*dt;
+  for(const o of obs){const dx=pos.x-o.x,dz=pos.z-o.z,d=Math.hypot(dx,dz),m=o.r+R*.9;
+    if(d<m&&d>.001&&h<1){pos.x=o.x+dx/d*m;pos.z=o.z+dz/d*m}}
+  const pr=Math.hypot(pos.x,pos.z);if(pr>MAP){pos.x*=MAP/pr;pos.z*=MAP/pr}
+
+  if(jumpReq&&grounded){vy=9.5;grounded=false;sqv=-3.5;takeoffDust();fJump();LCA.pJump()}
+  jumpReq=false;
+  if(!grounded){vy-=26*dt;h+=vy*dt;
+    if(h<=0){h=0;const imp=-vy;vy=0;grounded=true;sqv=Math.min(imp,14)*.45;landDust(imp);fShock(imp)}}
+  sqv+=(-120*sq-9*sqv)*dt;sq=clamp(sq+sqv*dt,-.4,.5);
+
+  const speed=Math.hypot(vel.x,vel.z),m=grounded?Math.min(speed/7,1):0;
+  phase+=dt*speed*1.7;const sn=Math.abs(Math.sin(phase));
+  const hop=0,wk=0;
+  const air=grounded?0:clamp(Math.abs(vy)*.015,0,.15);
+  const sy=clamp(1-sq+air+wk,.5,1.6),sxz=1/Math.sqrt(sy);
+  ball.position.set(pos.x,h+hop+R*sy,pos.z);ball.scale.set(sxz,sy,sxz);
+  ball.rotation.set(vel.z*.02,0,-vel.x*.02);
+  if(speed>.5){const th=Math.atan2(vel.x,vel.z);let d=th-heading;d=Math.atan2(Math.sin(d),Math.cos(d));heading+=d*(1-Math.exp(-12*dt))}
+  idleT=(speed<.5&&grounded)?idleT+dt:0;
+  const lt=idleT>2?lookAt((idleT-2)%5):0;
+  lookOff+=(lt-lookOff)*(1-Math.exp(-14*dt));
+  eyes.rotation.y=heading+lookOff;
+  blinkT-=dt;if(blinkT<=0){blinkP=.15;blinkT=2+Math.random()*3}
+  let by=1;if(blinkP>0){blinkP-=dt;by=.1}
+  eyeM.forEach(e=>e.scale.y=1.5*by);
+  if(speed>.05){axis.set(vel.z,0,-vel.x).normalize();q.setFromAxisAngle(axis,speed*dt/R);mesh.quaternion.premultiply(q).normalize()}
+  sh.position.set(pos.x,.02,pos.z);sh.scale.setScalar(sxz/(1+h*.35));sh.material.opacity=.28/(1+h*.3);
+
+  updateDust(dt,speed,acc);try{LCA.global(dt);WILL.global(dt);updateFollowers(dt);updateIcons(dt)}catch(err){if(!window.__npcErr){window.__npcErr=1;console.error(err)}}
+
+  const ck=1-Math.exp(-10*dt);camT.x+=(pos.x-camT.x)*ck;camT.z+=(pos.z-camT.z)*ck;camT.y=1;
+  cam.position.set(camT.x+Math.sin(yaw)*Math.cos(pitch)*dist,camT.y+Math.sin(pitch)*dist,camT.z+Math.cos(yaw)*Math.cos(pitch)*dist);
+  cam.lookAt(camT);renderer.render(scene,cam);
+}
+loop();
+})();
+</script></body></html>
